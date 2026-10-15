@@ -1,4 +1,5 @@
 import { paths } from '@/app/paths'
+import { PlannerOnly } from '@/components/auth/PlannerOnly'
 import { DetailHeader } from '@/components/layout/DetailHeader'
 import { PageContainer } from '@/components/layout/PageContainer'
 
@@ -9,11 +10,13 @@ export function AiExportPage() {
     <>
       <DetailHeader backTo={paths.settings} backLabel="Settings" title="AI Export" />
       <PageContainer>
-        <ScaffoldPlaceholder
-          heading="AI Export"
-          step="step 14"
-          description="Export the full wedding as JSON or Markdown for ChatGPT or Claude."
-        />
+        <PlannerOnly feature="AI Export">
+          <ScaffoldPlaceholder
+            heading="AI Export"
+            step="step 14"
+            description="Export the full wedding as JSON or Markdown for ChatGPT or Claude."
+          />
+        </PlannerOnly>
       </PageContainer>
     </>
   )
