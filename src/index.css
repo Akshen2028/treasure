@@ -1,0 +1,135 @@
+@import 'tailwindcss';
+@import 'tw-animate-css';
+@import 'shadcn/tailwind.css';
+@import '@fontsource-variable/inter';
+@import '@fontsource-variable/cormorant-garamond';
+
+/*
+ * Wedonomics design tokens.
+ * Ivory + champagne surfaces, warm taupe neutrals, muted gold accents.
+ * Every color used in components should come from these variables.
+ */
+:root {
+  color-scheme: light;
+
+  /* Surfaces */
+  --background: #fbf8f3; /* ivory */
+  --foreground: #2f2721; /* espresso ink */
+  --card: #fffefb;
+  --card-foreground: #2f2721;
+  --popover: #fffefb;
+  --popover-foreground: #2f2721;
+
+  /* Actions */
+  --primary: #3f342b; /* deep espresso — primary buttons */
+  --primary-foreground: #fbf8f3;
+  --secondary: #f3ebdd; /* champagne wash */
+  --secondary-foreground: #3f342b;
+  --accent: #efe3cc; /* champagne */
+  --accent-foreground: #3f342b;
+  --muted: #f4efe7;
+  --muted-foreground: #74675b; /* warm taupe, 5:1 on ivory */
+
+  /* Brand accents */
+  --gold: #a8834a; /* muted gold — decorative and large text only */
+  --gold-soft: #eadcc0;
+  --champagne: #eadbc2;
+  --taupe: #a39282;
+
+  /* Status */
+  --destructive: #a6463a;
+  --warning: #9a6a1c;
+  --warning-soft: #f7ecd6;
+  --success: #5f7552;
+  --success-soft: #e8eddf;
+
+  /* Lines and focus */
+  --border: #e7ded1;
+  --input: #ddd2c2;
+  --ring: #b8975a;
+
+  --radius: 1rem;
+}
+
+@theme inline {
+  --font-sans: 'Inter Variable', ui-sans-serif, system-ui, sans-serif;
+  --font-heading: 'Cormorant Garamond Variable', ui-serif, Georgia, serif;
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-gold: var(--gold);
+  --color-gold-soft: var(--gold-soft);
+  --color-champagne: var(--champagne);
+  --color-taupe: var(--taupe);
+  --color-destructive: var(--destructive);
+  --color-warning: var(--warning);
+  --color-warning-soft: var(--warning-soft);
+  --color-success: var(--success);
+  --color-success-soft: var(--success-soft);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --radius-sm: calc(var(--radius) * 0.5);
+  --radius-md: calc(var(--radius) * 0.75);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.25);
+  --radius-2xl: calc(var(--radius) * 1.5);
+  --radius-3xl: calc(var(--radius) * 2);
+
+  --shadow-soft: 0 1px 2px rgb(63 52 43 / 0.04), 0 8px 24px -12px rgb(63 52 43 / 0.12);
+  --shadow-lifted: 0 2px 4px rgb(63 52 43 / 0.05), 0 16px 40px -16px rgb(63 52 43 / 0.18);
+}
+
+/* iOS/Android safe areas for the installed (standalone) app. */
+@utility pt-safe {
+  padding-top: max(env(safe-area-inset-top), 0px);
+}
+@utility pb-safe {
+  padding-bottom: max(env(safe-area-inset-bottom), 1rem);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  html {
+    @apply bg-background font-sans antialiased;
+    -webkit-tap-highlight-color: transparent;
+    text-rendering: optimizeLegibility;
+  }
+  body {
+    @apply min-h-dvh bg-background text-foreground;
+  }
+  h1,
+  h2,
+  h3 {
+    @apply font-heading font-medium tracking-tight text-balance;
+  }
+  :focus-visible {
+    @apply outline-2 outline-offset-2 outline-ring;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
