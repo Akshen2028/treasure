@@ -34,6 +34,7 @@ npm run dev
 ```
 src/
   app/          router, route paths, root layout
+  domain/       pure business logic: types, money, budget math, soft-delete rules (no React, no Supabase)
   components/
     ui/         shadcn primitives (owned, lightly customised)
     layout/     headers and page containers
