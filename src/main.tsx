@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client'
 import { RouterProvider } from 'react-router/dom'
 
 import { router } from '@/app/router'
+import { AccessProvider } from '@/auth/AccessProvider'
 
 import './index.css'
 
@@ -11,6 +12,8 @@ if (!root) throw new Error('Root element #root not found')
 
 createRoot(root).render(
   <StrictMode>
-    <RouterProvider router={router} />
+    <AccessProvider>
+      <RouterProvider router={router} />
+    </AccessProvider>
   </StrictMode>,
 )

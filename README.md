@@ -11,25 +11,26 @@ Requires Node 22.22+ (`.nvmrc` pins Node 24).
 ```sh
 nvm use
 npm install
-cp .env.example .env.local   # fill in public Supabase values (from step 04)
+cp .env.example .env.local   # public Supabase values + planner email
 npm run dev
 ```
 
 ## Scripts
 
-| Command                | What it does                            |
-| ---------------------- | --------------------------------------- |
-| `npm run dev`          | Start the dev server                    |
-| `npm run build`        | Type-check and build for production     |
-| `npm run preview`      | Serve the production build locally      |
-| `npm run typecheck`    | TypeScript only                         |
-| `npm run lint`         | oxlint                                  |
-| `npm run format`       | Format with Prettier                    |
-| `npm run format:check` | Verify formatting                       |
-| `npm run test`         | Run Vitest once                         |
-| `npm run check`        | Typecheck, lint, format check and tests |
-| `npm run test:db`      | Integration tests against Supabase      |
-| `npm run db:types`     | Regenerate database TypeScript types    |
+| Command                 | What it does                            |
+| ----------------------- | --------------------------------------- |
+| `npm run dev`           | Start the dev server                    |
+| `npm run build`         | Type-check and build for production     |
+| `npm run preview`       | Serve the production build locally      |
+| `npm run typecheck`     | TypeScript only                         |
+| `npm run lint`          | oxlint                                  |
+| `npm run format`        | Format with Prettier                    |
+| `npm run format:check`  | Verify formatting                       |
+| `npm run test`          | Run Vitest once                         |
+| `npm run check`         | Typecheck, lint, format check and tests |
+| `npm run test:db`       | Integration tests against Supabase      |
+| `npm run db:types`      | Regenerate database TypeScript types    |
+| `npm run planner:setup` | Create/reset the planner account        |
 
 ## Project layout
 
@@ -59,6 +60,12 @@ After a migration, run `npm run db:types`.
 **Access model:** guests (public key) can only read; planners (accounts listed in the
 `planners` table) can insert and update their wedding; nobody can hard-delete through the API.
 Deletion is soft (`deleted_at`).
+
+**Planner access:** run `npm run planner:setup` in a terminal. It creates the wedding (slug
+`main`) if needed, creates the planner account or resets its password through hidden prompts,
+and grants planner rights. It uses the secret key from `.env.test.local` and never runs in the
+browser. The app signs in with `VITE_PLANNER_EMAIL` + the password; Supabase Auth checks it
+and the session stays until the planner locks the device.
 
 **Integration tests** (`npm run test:db`) need `.env.test.local` (see `.env.test.example`).
 They create a temporary test wedding and test users, and remove them afterwards, including

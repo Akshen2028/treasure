@@ -1,11 +1,22 @@
-import { Eye, KeyRound } from 'lucide-react'
-import { Link } from 'react-router'
+import { ChevronLeft, Eye, KeyRound } from 'lucide-react'
+import { useState } from 'react'
+import { Navigate } from 'react-router'
 
 import { paths } from '@/app/paths'
+import { useAccess } from '@/auth/AccessContext'
+import { PlannerLoginForm } from '@/components/auth/PlannerLoginForm'
 import { Wordmark } from '@/components/brand/Wordmark'
+import { SplashScreen } from '@/components/feedback/SplashScreen'
 import { Button } from '@/components/ui/button'
 
 export function WelcomePage() {
+  const { status, mode, continueAsGuest } = useAccess()
+  const [showPlannerForm, setShowPlannerForm] = useState(false)
+
+  if (status === 'initializing') return <SplashScreen />
+  // Returning visitors, and anyone who just chose, go straight to the dashboard.
+  if (mode !== 'unset') return <Navigate to={paths.home} replace />
+
   return (
     <main className="relative grid min-h-dvh place-items-center overflow-hidden px-6 pt-safe pb-safe">
       {/* Soft champagne glow behind the content. */}
@@ -20,20 +31,31 @@ export function WelcomePage() {
           Every celebration, beautifully budgeted.
         </p>
 
-        <div className="mt-12 flex w-full flex-col gap-3">
-          <Button asChild size="lg">
-            <Link to={paths.home}>
-              <Eye data-icon="inline-start" />
-              Continue as Guest
-            </Link>
-          </Button>
-          <Button size="lg" variant="outline" disabled aria-describedby="planner-note">
-            <KeyRound data-icon="inline-start" />
-            Enter Planner Password
-          </Button>
-          <p id="planner-note" className="text-xs text-muted-foreground">
-            Planner sign-in arrives in step 04.
-          </p>
+        <div className="mt-12 w-full">
+          {showPlannerForm ? (
+            <div className="flex animate-in flex-col gap-2 duration-300 fade-in slide-in-from-bottom-1">
+              <PlannerLoginForm onSuccess={() => {}} />
+              <Button
+                variant="ghost"
+                className="text-muted-foreground"
+                onClick={() => setShowPlannerForm(false)}
+              >
+                <ChevronLeft data-icon="inline-start" />
+                Back
+              </Button>
+            </div>
+          ) : (
+            <div className="flex flex-col gap-3">
+              <Button size="lg" onClick={continueAsGuest}>
+                <Eye data-icon="inline-start" />
+                Continue as Guest
+              </Button>
+              <Button size="lg" variant="outline" onClick={() => setShowPlannerForm(true)}>
+                <KeyRound data-icon="inline-start" />
+                Enter Planner Password
+              </Button>
+            </div>
+          )}
         </div>
 
         <p className="mt-10 text-xs text-muted-foreground">

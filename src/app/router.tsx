@@ -1,5 +1,6 @@
 import { createBrowserRouter } from 'react-router'
 
+import { RequireEntered } from '@/auth/RequireEntered'
 import { RouteError } from '@/components/feedback/RouteError'
 import { ActivityPage } from '@/pages/ActivityPage'
 import { AiExportPage } from '@/pages/AiExportPage'
@@ -21,20 +22,26 @@ export const router = createBrowserRouter([
     errorElement: <RouteError />,
     children: [
       { path: '/', element: <WelcomePage /> },
-      { path: '/home', element: <HomePage /> },
-      { path: '/search', element: <SearchPage /> },
-      { path: '/settings', element: <SettingsPage /> },
-      { path: '/settings/deleted', element: <RecentlyDeletedPage /> },
-      { path: '/settings/export', element: <AiExportPage /> },
-      { path: '/events/:eventId', element: <EventPage /> },
-      { path: '/events/:eventId/categories/:categoryId', element: <CategoryPage /> },
       {
-        path: '/events/:eventId/categories/:categoryId/activities/:activityId',
-        element: <ActivityPage />,
-      },
-      {
-        path: '/events/:eventId/categories/:categoryId/activities/:activityId/payments',
-        element: <PaymentsPage />,
+        // Everything past the welcome screen requires choosing guest or planner first.
+        element: <RequireEntered />,
+        children: [
+          { path: '/home', element: <HomePage /> },
+          { path: '/search', element: <SearchPage /> },
+          { path: '/settings', element: <SettingsPage /> },
+          { path: '/settings/deleted', element: <RecentlyDeletedPage /> },
+          { path: '/settings/export', element: <AiExportPage /> },
+          { path: '/events/:eventId', element: <EventPage /> },
+          { path: '/events/:eventId/categories/:categoryId', element: <CategoryPage /> },
+          {
+            path: '/events/:eventId/categories/:categoryId/activities/:activityId',
+            element: <ActivityPage />,
+          },
+          {
+            path: '/events/:eventId/categories/:categoryId/activities/:activityId/payments',
+            element: <PaymentsPage />,
+          },
+        ],
       },
       { path: '*', element: <NotFoundPage /> },
     ],
