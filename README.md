@@ -28,6 +28,8 @@ npm run dev
 | `npm run format:check` | Verify formatting                       |
 | `npm run test`         | Run Vitest once                         |
 | `npm run check`        | Typecheck, lint, format check and tests |
+| `npm run test:db`      | Integration tests against Supabase      |
+| `npm run db:types`     | Regenerate database TypeScript types    |
 
 ## Project layout
 
@@ -41,7 +43,26 @@ src/
     brand/      wordmark
     feedback/   empty and error states
   pages/        one component per screen
-  lib/          small shared utilities
+  lib/          small shared utilities, generated database types
+supabase/
+  migrations/   version-controlled schema, access rules and storage
+tests/
+  integration/  security and data-integrity tests against Supabase
 ```
+
+## Database
+
+The app uses one linked Supabase project. All schema changes are SQL migrations in
+`supabase/migrations/`, applied with `supabase db push` (always `--dry-run` first).
+After a migration, run `npm run db:types`.
+
+**Access model:** guests (public key) can only read; planners (accounts listed in the
+`planners` table) can insert and update their wedding; nobody can hard-delete through the API.
+Deletion is soft (`deleted_at`).
+
+**Integration tests** (`npm run test:db`) need `.env.test.local` (see `.env.test.example`).
+They create a temporary test wedding and test users, and remove them afterwards, including
+leftovers from crashed runs (weddings with slug `test-*`, users at
+`@integration.wedonomics.test`). Never give a real wedding a `test-` slug.
 
 Built in staged steps, one branch and PR per step.
