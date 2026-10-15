@@ -1,3 +1,5 @@
+import { fileURLToPath, URL } from 'node:url'
+
 import { loadEnv } from 'vite'
 import { defineConfig } from 'vitest/config'
 
@@ -9,6 +11,9 @@ import { defineConfig } from 'vitest/config'
 Object.assign(process.env, loadEnv('test', process.cwd(), ''))
 
 export default defineConfig({
+  resolve: {
+    alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) },
+  },
   test: {
     include: ['tests/integration/**/*.test.ts'],
     environment: 'node',
