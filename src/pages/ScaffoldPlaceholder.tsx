@@ -23,7 +23,7 @@ export function ScaffoldPlaceholder({
 }: ScaffoldPlaceholderProps) {
   return (
     <section className="py-8">
-      <h1 className="mb-6 text-4xl">{heading}</h1>
+      {heading && <h1 className="mb-6 text-4xl">{heading}</h1>}
       <EmptyState
         icon={Hammer}
         title={`Arrives in ${step}`}

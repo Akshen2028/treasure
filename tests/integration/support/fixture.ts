@@ -11,6 +11,7 @@ export type Fixture = {
   admin: Client
   /** Wedding the planner can edit. */
   weddingId: string
+  weddingSlug: string
   /** A second wedding the planner has no rights to. */
   otherWeddingId: string
   /** One event → category → activity → payment chain inside `weddingId`. */
@@ -167,6 +168,7 @@ export async function createFixture(): Promise<Fixture> {
   const fixture: Fixture = {
     admin,
     weddingId: wedding.id,
+    weddingSlug: `${TEST_SLUG_PREFIX}${runId}`,
     otherWeddingId: other.id,
     eventId: main.eventId,
     eventCategoryId: main.categoryId,
