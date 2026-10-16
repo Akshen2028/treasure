@@ -68,6 +68,12 @@ type SnapshotMutationOptions<TVariables, TResult> = {
   optimistic?: (snapshot: WeddingSnapshot, variables: TVariables) => WeddingSnapshot
   /** Folds the server's result into the cache before the background refetch. */
   reconcile?: (snapshot: WeddingSnapshot, result: TResult, variables: TVariables) => WeddingSnapshot
+  /**
+   * Side effects such as toasts. Unlike callbacks passed to `mutate`, these still run if
+   * the component that started the mutation unmounts (e.g. after navigating away).
+   */
+  onSuccess?: (result: TResult, variables: TVariables) => void
+  onError?: (error: unknown, variables: TVariables) => void
 }
 
 /**
@@ -78,6 +84,8 @@ export function useSnapshotMutation<TVariables, TResult>({
   mutationFn,
   optimistic,
   reconcile,
+  onSuccess,
+  onError,
 }: SnapshotMutationOptions<TVariables, TResult>) {
   const repository = useRepository()
   const queryClient = useQueryClient()
@@ -92,14 +100,17 @@ export function useSnapshotMutation<TVariables, TResult>({
       if (previous) queryClient.setQueryData(queryKey, optimistic(previous, variables))
       return { previous }
     },
-    onError: (_error, _variables, context) => {
+    onError: (error, variables, context) => {
       if (context?.previous) queryClient.setQueryData(queryKey, context.previous)
+      onError?.(error, variables)
     },
     onSuccess: (result, variables) => {
-      if (!reconcile) return
-      queryClient.setQueryData<WeddingSnapshot>(queryKey, (current) =>
-        current ? reconcile(current, result, variables) : current,
-      )
+      if (reconcile) {
+        queryClient.setQueryData<WeddingSnapshot>(queryKey, (current) =>
+          current ? reconcile(current, result, variables) : current,
+        )
+      }
+      onSuccess?.(result, variables)
     },
     onSettled: () => queryClient.invalidateQueries({ queryKey: weddingKeys.all }),
   })
