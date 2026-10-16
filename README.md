@@ -42,7 +42,11 @@ src/
     ui/         shadcn primitives (owned, lightly customised)
     layout/     headers and page containers
     brand/      wordmark
-    feedback/   empty and error states
+    feedback/   empty, loading, error and confirm states
+    forms/      responsive sheet, form fields, money input
+    budget/     budget figures and spending progress
+  data/         repository interface, Supabase implementation, queries and mutations
+  features/     feature UI and logic (events, …): cards, forms, mutations
   pages/        one component per screen
   lib/          small shared utilities, generated database types
 supabase/
