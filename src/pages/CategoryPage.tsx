@@ -1,4 +1,4 @@
-import { CircleOff, RotateCcw, Share2 } from 'lucide-react'
+import { CircleOff, ListChecks, Plus, RotateCcw, Share2 } from 'lucide-react'
 import { useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router'
 
@@ -15,12 +15,90 @@ import { Button } from '@/components/ui/button'
 import type { WeddingData } from '@/data/queries'
 import { formatCad } from '@/domain/money'
 import { useDeleteWithUndo, useRestoreWithToast } from '@/data/softDelete'
+import { ActivityCard } from '@/features/activities/ActivityCard'
+import { ActivityFormSheet } from '@/features/activities/ActivityFormSheet'
+import { activitiesForCategory } from '@/features/activities/activityLogic'
 import { otherEventsUsing } from '@/features/categories/categoryLogic'
 import { EditCategorySheet } from '@/features/categories/EditCategorySheet'
 
-import { ScaffoldPlaceholder } from './ScaffoldPlaceholder'
-
 type Params = { eventId: string; categoryId: string }
+
+function ActivitiesSection({
+  data,
+  eventId,
+  eventCategoryId,
+}: {
+  data: WeddingData
+  eventId: string
+  eventCategoryId: string
+}) {
+  const { isPlanner } = useAccess()
+  const [adding, setAdding] = useState(false)
+  const activities = activitiesForCategory(data.active, eventCategoryId)
+
+  return (
+    <section className="mt-10" aria-labelledby="activities-heading">
+      <div className="mb-4 flex items-end justify-between gap-4">
+        <h2 id="activities-heading" className="text-3xl">
+          Activities
+        </h2>
+        {isPlanner && activities.length > 0 && (
+          <Button size="sm" onClick={() => setAdding(true)}>
+            <Plus data-icon="inline-start" />
+            Add activity
+          </Button>
+        )}
+      </div>
+
+      {activities.length === 0 ? (
+        <EmptyState
+          icon={ListChecks}
+          title="No activities yet"
+          description={
+            isPlanner
+              ? 'Add the things to book or buy, each with its own budget and payments.'
+              : 'The planners haven’t added activities here yet.'
+          }
+          action={
+            isPlanner && (
+              <Button onClick={() => setAdding(true)}>
+                <Plus data-icon="inline-start" />
+                Add an activity
+              </Button>
+            )
+          }
+        />
+      ) : (
+        <ul className="grid gap-3 sm:grid-cols-2">
+          {activities.map((activity) => {
+            const summary = data.budget.activities.get(activity.id)
+            return (
+              summary && (
+                <li key={activity.id}>
+                  <ActivityCard
+                    to={paths.activity(eventId, eventCategoryId, activity.id)}
+                    activity={activity}
+                    summary={summary}
+                  />
+                </li>
+              )
+            )
+          })}
+        </ul>
+      )}
+
+      {isPlanner && (
+        <ActivityFormSheet
+          open={adding}
+          onOpenChange={setAdding}
+          weddingId={data.snapshot.wedding.id}
+          eventId={eventId}
+          eventCategoryId={eventCategoryId}
+        />
+      )}
+    </section>
+  )
+}
 
 /** Explains why a category can't be shown, offering restore where that would help. */
 function UnavailableCategory({ data, eventId, categoryId }: { data: WeddingData } & Params) {
@@ -164,15 +242,7 @@ function CategoryDetails({ data, eventId, categoryId }: { data: WeddingData } & 
           </section>
         )}
 
-        <ScaffoldPlaceholder
-          heading=""
-          step="step 08"
-          description="This category’s activities, each with its own budget, status and payments."
-          next={{
-            to: paths.activity(event.id, category.id, 'preview'),
-            label: 'Preview activity screen',
-          }}
-        />
+        <ActivitiesSection data={data} eventId={event.id} eventCategoryId={category.id} />
 
         {isPlanner && (
           <>
