@@ -21,11 +21,14 @@ export type ActiveSnapshot = WeddingSnapshot
 
 /** Filters a snapshot down to records that are active and have active ancestors. */
 export function selectActive(snapshot: WeddingSnapshot): ActiveSnapshot {
+  const categoryDefinitions = snapshot.categoryDefinitions.filter((d) => d.deletedAt === null)
+  const definitionIds = new Set(categoryDefinitions.map((d) => d.id))
   const events = snapshot.events.filter((e) => e.deletedAt === null)
   const eventIds = new Set(events.map((e) => e.id))
 
   const eventCategories = snapshot.eventCategories.filter(
-    (c) => c.deletedAt === null && eventIds.has(c.eventId),
+    (c) =>
+      c.deletedAt === null && eventIds.has(c.eventId) && definitionIds.has(c.categoryDefinitionId),
   )
   const categoryIds = new Set(eventCategories.map((c) => c.id))
 
@@ -40,7 +43,7 @@ export function selectActive(snapshot: WeddingSnapshot): ActiveSnapshot {
 
   return {
     wedding: snapshot.wedding,
-    categoryDefinitions: snapshot.categoryDefinitions,
+    categoryDefinitions,
     events,
     eventCategories,
     activities,
@@ -50,7 +53,7 @@ export function selectActive(snapshot: WeddingSnapshot): ActiveSnapshot {
   }
 }
 
-export type DeletableKind = 'event' | 'category' | 'activity' | 'payment'
+export type DeletableKind = 'definition' | 'event' | 'category' | 'activity' | 'payment'
 
 export type DeletedItem = {
   kind: DeletableKind
@@ -165,6 +168,9 @@ export function listDeletedItems(
   const lookup = buildLookup(snapshot)
   const items: DeletedItem[] = []
 
+  for (const d of snapshot.categoryDefinitions) {
+    if (d.deletedAt) items.push(toDeletedItem('definition', d.id, d.name, d.deletedAt, []))
+  }
   for (const e of snapshot.events) {
     if (e.deletedAt) items.push(toDeletedItem('event', e.id, e.name, e.deletedAt, []))
   }

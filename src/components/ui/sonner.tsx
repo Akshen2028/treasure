@@ -12,7 +12,9 @@ const Toaster = ({ ...props }: ToasterProps) => {
   return (
     <Sonner
       theme="light"
-      position="top-center"
+      // Bottom on all sizes: at the top, toasts would cover header actions on phones.
+      position="bottom-center"
+      mobileOffset={{ bottom: 'calc(env(safe-area-inset-bottom) + 16px)' }}
       className="toaster group"
       icons={{
         success: <CircleCheckIcon className="size-4" />,

@@ -1,4 +1,4 @@
-import { CalendarDays, CircleOff, Ellipsis, MapPin, Pencil, RotateCcw, Trash2 } from 'lucide-react'
+import { CalendarDays, CircleOff, LayoutGrid, MapPin, Plus, RotateCcw } from 'lucide-react'
 import { useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router'
 
@@ -9,41 +9,18 @@ import { ConfirmDialog } from '@/components/feedback/ConfirmDialog'
 import { EmptyState } from '@/components/feedback/EmptyState'
 import { WeddingDataBoundary } from '@/components/feedback/WeddingDataBoundary'
 import { DetailHeader } from '@/components/layout/DetailHeader'
+import { ItemActionsMenu } from '@/components/layout/ItemActionsMenu'
 import { PageContainer } from '@/components/layout/PageContainer'
 import { Button } from '@/components/ui/button'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
 import type { WeddingData } from '@/data/queries'
+import { formatCad } from '@/domain/money'
 import { useDeleteWithUndo, useRestoreWithToast } from '@/data/softDelete'
 import { formatDate } from '@/domain/dates'
 import type { WeddingEvent } from '@/domain/types'
+import { AddCategorySheet } from '@/features/categories/AddCategorySheet'
+import { CategoryCard } from '@/features/categories/CategoryCard'
+import { activityCount, categoriesForEvent } from '@/features/categories/categoryLogic'
 import { EventFormSheet } from '@/features/events/EventFormSheet'
-
-import { ScaffoldPlaceholder } from './ScaffoldPlaceholder'
-
-function EventActions({ onEdit, onDelete }: { onEdit: () => void; onDelete: () => void }) {
-  return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon" aria-label="Event actions">
-          <Ellipsis />
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="min-w-44">
-        <DropdownMenuItem onSelect={onEdit} className="py-2.5">
-          <Pencil /> Edit event
-        </DropdownMenuItem>
-        <DropdownMenuItem onSelect={onDelete} variant="destructive" className="py-2.5">
-          <Trash2 /> Delete event
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
-  )
-}
 
 function DeletedEventNotice({ event }: { event: WeddingEvent }) {
   const { isPlanner } = useAccess()
@@ -66,6 +43,77 @@ function DeletedEventNotice({ event }: { event: WeddingEvent }) {
       }
       className="my-8"
     />
+  )
+}
+
+function CategoriesSection({ data, event }: { data: WeddingData; event: WeddingEvent }) {
+  const { isPlanner } = useAccess()
+  const [adding, setAdding] = useState(false)
+  const categories = categoriesForEvent(data.active, event.id)
+
+  return (
+    <section className="mt-10" aria-labelledby="categories-heading">
+      <div className="mb-4 flex items-end justify-between gap-4">
+        <h2 id="categories-heading" className="text-3xl">
+          Categories
+        </h2>
+        {isPlanner && categories.length > 0 && (
+          <Button size="sm" onClick={() => setAdding(true)}>
+            <Plus data-icon="inline-start" />
+            Add category
+          </Button>
+        )}
+      </div>
+
+      {categories.length === 0 ? (
+        <EmptyState
+          icon={LayoutGrid}
+          title="No categories yet"
+          description={
+            isPlanner
+              ? 'Add what you’re budgeting for, like Food, Decor or a Photographer.'
+              : 'The planners haven’t added categories to this event yet.'
+          }
+          action={
+            isPlanner && (
+              <Button onClick={() => setAdding(true)}>
+                <Plus data-icon="inline-start" />
+                Add a category
+              </Button>
+            )
+          }
+        />
+      ) : (
+        <ul className="grid gap-3 sm:grid-cols-2">
+          {categories.map(({ category, definition }) => {
+            const summary = data.budget.categories.get(category.id)
+            return (
+              summary && (
+                <li key={category.id}>
+                  <CategoryCard
+                    to={paths.category(event.id, category.id)}
+                    name={definition.name}
+                    activities={activityCount(data.active, category.id)}
+                    summary={summary}
+                  />
+                </li>
+              )
+            )
+          })}
+        </ul>
+      )}
+
+      {isPlanner && (
+        <AddCategorySheet
+          open={adding}
+          onOpenChange={setAdding}
+          wedding={data.snapshot.wedding}
+          event={event}
+          snapshot={data.snapshot}
+          active={data.active}
+        />
+      )}
+    </section>
   )
 }
 
@@ -114,7 +162,10 @@ function EventDetails({ data, eventId }: { data: WeddingData; eventId: string })
         title={event.name}
         actions={
           isPlanner && (
-            <EventActions
+            <ItemActionsMenu
+              label="Event actions"
+              editLabel="Edit event"
+              deleteLabel="Delete event"
               onEdit={() => setEditing(true)}
               onDelete={() => setConfirmingDelete(true)}
             />
@@ -148,17 +199,12 @@ function EventDetails({ data, eventId }: { data: WeddingData; eventId: string })
           <BudgetFigures summary={summary} size="lg" />
           <p className="mt-3 text-xs text-muted-foreground">
             {manual
-              ? 'Budget set manually for this event.'
+              ? `Budget set manually for this event. Its categories add up to ${formatCad(summary.childBudgetsCents)}.`
               : 'Budget calculated from this event’s activities.'}
           </p>
         </section>
 
-        <ScaffoldPlaceholder
-          heading=""
-          step="step 07"
-          description="This event’s categories, with their budgets and spending."
-          next={{ to: paths.category(event.id, 'preview'), label: 'Preview category screen' }}
-        />
+        <CategoriesSection data={data} event={event} />
 
         {isPlanner && (
           <>

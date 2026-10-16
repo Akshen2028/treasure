@@ -47,12 +47,15 @@ export class SnapshotBuilder {
     }
   }
 
-  definition(id: string, name = id): this {
+  definition(id: string, name = id, extra: Partial<CategoryDefinition> = {}): this {
     const def: CategoryDefinition = {
       id,
       weddingId: 'w1',
       name,
       isDefault: false,
+      sortOrder: 0,
+      deletedAt: null,
+      ...extra,
       createdAt: TS,
       updatedAt: TS,
     }
@@ -152,7 +155,7 @@ export class SnapshotBuilder {
   }
 }
 
-type Collection = 'events' | 'eventCategories' | 'activities' | 'payments'
+type Collection = 'categoryDefinitions' | 'events' | 'eventCategories' | 'activities' | 'payments'
 
 /** Returns a copy of the snapshot with the wedding changed, e.g. its budget mode. */
 export function withWedding(
