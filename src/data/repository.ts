@@ -18,7 +18,8 @@ import type {
 } from '@/domain/types'
 
 /** Records that support soft deletion and restore. */
-export type SoftDeletableKind = 'event' | 'category' | 'activity' | 'payment' | 'link' | 'image'
+export type SoftDeletableKind =
+  'definition' | 'event' | 'category' | 'activity' | 'payment' | 'link' | 'image'
 
 export type WeddingPatch = Partial<
   Pick<Wedding, 'name' | 'weddingDate' | 'budgetMode' | 'manualBudgetCents'>

@@ -7,6 +7,7 @@ import { useSnapshotMutation } from './queries'
 import type { SoftDeletableKind } from './repository'
 
 const COLLECTION = {
+  definition: 'categoryDefinitions',
   event: 'events',
   category: 'eventCategories',
   activity: 'activities',

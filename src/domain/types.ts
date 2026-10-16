@@ -52,13 +52,18 @@ export type Wedding = Timestamps & {
   manualBudgetCents: number
 }
 
-/** Wedding-wide category (Food, Decor, ...), reusable across events. */
-export type CategoryDefinition = Timestamps & {
-  id: Id
-  weddingId: Id
-  name: string
-  isDefault: boolean
-}
+/**
+ * Wedding-wide category (Food, Decor, ...), reusable across events. Custom ones can be
+ * soft-deleted when no event uses them; the seven defaults never can.
+ */
+export type CategoryDefinition = Timestamps &
+  SoftDeletable & {
+    id: Id
+    weddingId: Id
+    name: string
+    isDefault: boolean
+    sortOrder: number
+  }
 
 export type WeddingEvent = Timestamps &
   SoftDeletable & {

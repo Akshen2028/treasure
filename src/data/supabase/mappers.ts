@@ -57,6 +57,8 @@ export const toCategoryDefinition = (r: Row<'category_definitions'>): CategoryDe
   weddingId: r.wedding_id,
   name: r.name,
   isDefault: r.is_default,
+  sortOrder: r.sort_order,
+  deletedAt: r.deleted_at,
   ...timestamps(r),
 })
 

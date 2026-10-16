@@ -141,3 +141,30 @@ describe('findCategoryRestoreConflict', () => {
     expect(findCategoryRestoreConflict(s, 'r-decor')).toBeNull()
   })
 })
+
+describe('deleted category definitions', () => {
+  it('are excluded from the active snapshot along with any event category using them', () => {
+    const s = new SnapshotBuilder()
+      .definition('florist', 'Florist', { deletedAt: '2026-10-16T00:00:00Z' })
+      .event('mehndi')
+      .category('c1', 'mehndi', 'florist', 0, deleted)
+      .build()
+    const active = selectActive(s)
+    expect(active.categoryDefinitions).toEqual([])
+    expect(active.eventCategories).toEqual([])
+  })
+
+  it('appear in Recently Deleted', () => {
+    const s = new SnapshotBuilder()
+      .definition('florist', 'Florist', { deletedAt: '2026-10-16T00:00:00Z' })
+      .build()
+    expect(listDeletedItems(s, paymentLabel)).toEqual([
+      expect.objectContaining({
+        kind: 'definition',
+        id: 'florist',
+        label: 'Florist',
+        hiddenBy: null,
+      }),
+    ])
+  })
+})

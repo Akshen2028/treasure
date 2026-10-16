@@ -15,6 +15,7 @@ type Client = SupabaseClient<Database>
 type TableName = keyof Database['public']['Tables']
 
 const SOFT_DELETE_TABLES = {
+  definition: 'category_definitions',
   event: 'events',
   category: 'event_categories',
   activity: 'activities',
@@ -36,6 +37,10 @@ export function toRepositoryError(
   }
   if (code === '23505') {
     return new RepositoryError('conflict', 'That already exists.')
+  }
+  if (code === '23514' && !/violates/.test(message)) {
+    // Raised by our own database rules, which use plain-English messages.
+    return new RepositoryError('invalid', `${message}.`)
   }
   if (['23514', '23502', '23503', '22P02', '22003', '22001', '22007', '22008'].includes(code)) {
     return new RepositoryError('invalid', 'Some of the values aren’t valid.')

@@ -145,6 +145,23 @@ describe('domain to rows', () => {
 })
 
 describe('toRepositoryError', () => {
+  it('keeps plain-English messages raised by our database rules', () => {
+    const error = toRepositoryError({
+      code: '23514',
+      message: 'This category is still used by an event',
+    })
+    expect(error).toMatchObject({
+      reason: 'invalid',
+      message: 'This category is still used by an event.',
+    })
+    const constraint = toRepositoryError({
+      code: '23514',
+      message:
+        'new row for relation "payments" violates check constraint "payments_amount_cents_check"',
+    })
+    expect(constraint.message).toBe('Some of the values aren’t valid.')
+  })
+
   it.each([
     ['42501', 'forbidden'],
     ['23505', 'conflict'],
