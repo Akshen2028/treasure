@@ -17,20 +17,21 @@ npm run dev
 
 ## Scripts
 
-| Command                 | What it does                            |
-| ----------------------- | --------------------------------------- |
-| `npm run dev`           | Start the dev server                    |
-| `npm run build`         | Type-check and build for production     |
-| `npm run preview`       | Serve the production build locally      |
-| `npm run typecheck`     | TypeScript only                         |
-| `npm run lint`          | oxlint                                  |
-| `npm run format`        | Format with Prettier                    |
-| `npm run format:check`  | Verify formatting                       |
-| `npm run test`          | Run Vitest once                         |
-| `npm run check`         | Typecheck, lint, format check and tests |
-| `npm run test:db`       | Integration tests against Supabase      |
-| `npm run db:types`      | Regenerate database TypeScript types    |
-| `npm run planner:setup` | Create/reset the planner account        |
+| Command                     | What it does                                   |
+| --------------------------- | ---------------------------------------------- |
+| `npm run dev`               | Start the dev server                           |
+| `npm run build`             | Type-check and build for production            |
+| `npm run preview`           | Serve the production build locally             |
+| `npm run typecheck`         | TypeScript only                                |
+| `npm run lint`              | oxlint                                         |
+| `npm run format`            | Format with Prettier                           |
+| `npm run format:check`      | Verify formatting                              |
+| `npm run test`              | Run Vitest once                                |
+| `npm run check`             | Typecheck, lint, format check and tests        |
+| `npm run test:db`           | Integration tests against Supabase             |
+| `npm run db:types`          | Regenerate database TypeScript types           |
+| `npm run planner:setup`     | Create/reset the planner account               |
+| `npm run seed:dev -- --yes` | Replace the wedding's content with sample data |
 
 ## Project layout
 
@@ -70,6 +71,11 @@ Deletion is soft (`deleted_at`).
 and grants planner rights. It uses the secret key from `.env.test.local` and never runs in the
 browser. The app signs in with `VITE_PLANNER_EMAIL` + the password; Supabase Auth checks it
 and the session stays until the planner locks the device.
+
+**Sample data:** `npm run seed:dev -- --yes` permanently clears the wedding's events,
+categories, activities, payments, photos and custom categories, then adds a sample multi-day
+wedding. `--clear-only` clears without adding anything: run it before going live. The wedding
+itself, default categories and planner accounts are kept.
 
 **Integration tests** (`npm run test:db`) need `.env.test.local` (see `.env.test.example`).
 They create a temporary test wedding and test users, and remove them afterwards, including
