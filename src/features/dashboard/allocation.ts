@@ -15,66 +15,83 @@ export type AllocationRow = {
   share: number | null
   /** Paid exceeds budget for this item (shown with an icon, never by colour alone). */
   overBudget: boolean
+  /**
+   * Palette slot, fixed by budget rank so an item keeps its colour when the chart switches
+   * between Budget and Paid. null for "Other", which is drawn in a neutral colour.
+   */
+  colorIndex: number | null
   /** Rows folded into "Other". */
   folded?: number
 }
 
 export type Allocation = { rows: AllocationRow[]; totalCents: number }
 
-/** Beyond this many rows the tail folds into "Other", so bars stay readable. */
-export const MAX_ROWS = 8
+/** Distinct slice colours available (see --slice-* in index.css). */
+export const PALETTE_SIZE = 7
+/** At most this many slices on the card (7 colours + "Other"), so colours stay distinguishable. */
+export const MAX_ROWS = PALETTE_SIZE + 1
 
 type Item = { id: string; name: string; budgetCents: number; paidCents: number }
 
 export function buildAllocation(items: Item[], measure: Measure, maxRows = MAX_ROWS): Allocation {
   const value = (i: Item) => (measure === 'budget' ? i.budgetCents : i.paidCents)
   const totalCents = items.reduce((sum, i) => sum + value(i), 0)
-  const sorted = [...items].sort(
-    (a, b) => value(b) - value(a) || a.name.localeCompare(b.name, 'en-CA'),
+  const share = (cents: number) => (totalCents > 0 ? cents / totalCents : null)
+
+  // Identity (colour, and which items fold into "Other") comes from budget rank, so toggling
+  // between Budget and Paid never repaints or regroups anything.
+  const byBudget = [...items].sort(
+    (a, b) => b.budgetCents - a.budgetCents || a.name.localeCompare(b.name, 'en-CA'),
   )
-  const toRow = (i: Item): AllocationRow => ({
+  const fold = byBudget.length > maxRows
+  const kept = fold ? byBudget.slice(0, maxRows - 1) : byBudget
+  const folded = fold ? byBudget.slice(maxRows - 1) : []
+
+  const rows: AllocationRow[] = kept.map((i, rank) => ({
     id: i.id,
     name: i.name,
     valueCents: value(i),
-    share: totalCents > 0 ? value(i) / totalCents : null,
+    share: share(value(i)),
     overBudget: i.paidCents > i.budgetCents,
-  })
-
-  if (sorted.length <= maxRows) return { rows: sorted.map(toRow), totalCents }
-
-  const head = sorted.slice(0, maxRows - 1).map(toRow)
-  const tail = sorted.slice(maxRows - 1)
-  const other = tail.reduce(
-    (acc, i) => ({ budget: acc.budget + i.budgetCents, paid: acc.paid + i.paidCents }),
-    { budget: 0, paid: 0 },
-  )
-  const otherValue = measure === 'budget' ? other.budget : other.paid
-  return {
-    rows: [
-      ...head,
-      {
-        id: 'other',
-        name: `Other (${tail.length})`,
-        valueCents: otherValue,
-        share: totalCents > 0 ? otherValue / totalCents : null,
-        overBudget: false,
-        folded: tail.length,
-      },
-    ],
-    totalCents,
+    // Beyond the palette (only possible when not folding), items share the neutral colour.
+    colorIndex: rank < PALETTE_SIZE ? rank : null,
+  }))
+  if (folded.length > 0) {
+    const otherValue = folded.reduce((sum, i) => sum + value(i), 0)
+    rows.push({
+      id: 'other',
+      name: `Other (${folded.length})`,
+      valueCents: otherValue,
+      share: share(otherValue),
+      overBudget: false,
+      colorIndex: null,
+      folded: folded.length,
+    })
   }
+
+  // Display order follows the measure being shown, largest first; "Other" always last.
+  rows.sort((a, b) => {
+    if (a.folded) return 1
+    if (b.folded) return -1
+    return b.valueCents - a.valueCents || a.name.localeCompare(b.name, 'en-CA')
+  })
+  return { rows, totalCents }
 }
+
+/** Every item on its own, nothing folded: for the full breakdown view. */
+export const UNGROUPED = Number.POSITIVE_INFINITY
 
 export function eventAllocation(
   active: ActiveSnapshot,
   budget: BudgetIndex,
   measure: Measure,
+  maxRows = MAX_ROWS,
 ): Allocation {
   const items = active.events.flatMap((e) => {
     const s = budget.events.get(e.id)
     return s ? [{ id: e.id, name: e.name, budgetCents: s.budgetCents, paidCents: s.paidCents }] : []
   })
-  return buildAllocation(items, measure)
+  return buildAllocation(items, measure, maxRows)
 }
 
 /** Shared categories, each summed across every event that uses it. */
@@ -82,6 +99,7 @@ export function categoryAllocation(
   active: ActiveSnapshot,
   budget: BudgetIndex,
   measure: Measure,
+  maxRows = MAX_ROWS,
 ): Allocation {
   const names = new Map(active.categoryDefinitions.map((d) => [d.id, d.name]))
   const items = [...budget.categoryDefinitions.values()].map((s) => ({
@@ -90,5 +108,5 @@ export function categoryAllocation(
     budgetCents: s.budgetCents,
     paidCents: s.paidCents,
   }))
-  return buildAllocation(items, measure)
+  return buildAllocation(items, measure, maxRows)
 }

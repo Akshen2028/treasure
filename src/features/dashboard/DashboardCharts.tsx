@@ -3,9 +3,9 @@ import { useState } from 'react'
 import { SegmentedControl } from '@/components/forms/SegmentedControl'
 import type { WeddingData } from '@/data/queries'
 
-import { categoryAllocation, eventAllocation, type Measure } from './allocation'
-import { AllocationChart } from './AllocationChart'
+import { categoryAllocation, eventAllocation, type Measure, UNGROUPED } from './allocation'
 import { ChartCarousel } from './ChartCarousel'
+import { DonutCard } from './DonutChart'
 
 const MEASURES = [
   { value: 'budget', label: 'Budget' },
@@ -16,6 +16,7 @@ const MEASURES = [
 export function DashboardCharts({ data }: { data: WeddingData }) {
   const [measure, setMeasure] = useState<Measure>('budget')
   const empty = measure === 'budget' ? 'No budget set yet.' : 'Nothing paid yet.'
+  const { active, budget } = data
 
   return (
     <section className="mt-10" aria-labelledby="allocation-heading">
@@ -32,16 +33,18 @@ export function DashboardCharts({ data }: { data: WeddingData }) {
         />
       </div>
       <ChartCarousel labels={['By event', 'By category']}>
-        <AllocationChart
+        <DonutCard
           title="By event"
           measure={measure}
-          allocation={eventAllocation(data.active, data.budget, measure)}
+          allocation={eventAllocation(active, budget, measure)}
+          ungrouped={eventAllocation(active, budget, measure, UNGROUPED)}
           emptyText={empty}
         />
-        <AllocationChart
+        <DonutCard
           title="By category"
           measure={measure}
-          allocation={categoryAllocation(data.active, data.budget, measure)}
+          allocation={categoryAllocation(active, budget, measure)}
+          ungrouped={categoryAllocation(active, budget, measure, UNGROUPED)}
           emptyText={empty}
         />
       </ChartCarousel>

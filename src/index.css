@@ -42,6 +42,20 @@
    */
   --chart-1: #b07f28;
 
+  /*
+   * Donut slices: seven soft wedding tones in a fixed order, searched and validated so
+   * neighbouring slices (including last↔first) stay distinct for colour-blind readers.
+   * Several sit below 3:1 contrast, so slices always come with a labelled legend and table.
+   */
+  --slice-1: #e29572; /* peach */
+  --slice-2: #6fb2e9; /* sky */
+  --slice-3: #cfa34e; /* gold */
+  --slice-4: #34c1c1; /* teal */
+  --slice-5: #a45978; /* mulberry */
+  --slice-6: #80bd81; /* sage */
+  --slice-7: #af9de6; /* lavender */
+  --slice-other: #cbbfb1; /* neutral, for the folded "Other" slice */
+
   /* Status */
   --destructive: #a6463a;
   --warning: #9a6a1c;
