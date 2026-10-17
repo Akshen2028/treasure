@@ -58,7 +58,7 @@
 
   /* Status */
   --destructive: #a6463a;
-  --warning: #9a6a1c;
+  --warning: #8a5e17; /* ≥ 4.5:1 on warning-soft and on cards */
   --warning-soft: #f7ecd6;
   --success: #5f7552;
   --success-soft: #e8eddf;

@@ -142,12 +142,16 @@ function ExportPanel({ data }: { data: WeddingData }) {
         <h2 id="preview-heading" className="mb-2 text-2xl">
           Preview
         </h2>
-        <pre
+        {/* A labelled, keyboard-focusable scroll area for the preview. */}
+        <section
+          // Scrollable regions must be reachable by keyboard (WCAG 2.1.1).
+          // oxlint-disable-next-line jsx-a11y/no-noninteractive-tabindex
+          tabIndex={0}
           aria-label={`${format === 'markdown' ? 'Markdown' : 'JSON'} export preview`}
-          className="max-h-96 overflow-auto rounded-2xl border bg-muted/50 p-4 font-mono text-xs leading-relaxed whitespace-pre-wrap"
+          className="max-h-96 overflow-auto rounded-2xl border bg-muted/50 p-4"
         >
-          {text}
-        </pre>
+          <pre className="font-mono text-xs leading-relaxed whitespace-pre-wrap">{text}</pre>
+        </section>
       </section>
 
       <section aria-labelledby="prompts-heading" className="rounded-2xl border border-dashed p-5">

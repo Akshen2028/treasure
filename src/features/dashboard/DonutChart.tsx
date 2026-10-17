@@ -30,9 +30,11 @@ function Donut({
   const reducedMotion = useMediaQuery('(prefers-reduced-motion: reduce)')
   const slices = rows.filter((r) => r.valueCents > 0)
   return (
-    <div className="relative aspect-square w-full" aria-hidden="true">
+    // The ring repeats the legend beside it, so assistive tech skips it; on a card it's purely
+    // decorative (the whole card opens the breakdown), so it's inert there too.
+    <div className="relative aspect-square w-full" aria-hidden="true" inert={!onSelect}>
       <ResponsiveContainer width="100%" height="100%">
-        <PieChart>
+        <PieChart accessibilityLayer={false}>
           <Pie
             data={slices}
             dataKey="valueCents"
@@ -99,18 +101,19 @@ export function DonutCard({ title, measure, allocation, ungrouped, emptyText }: 
 
   return (
     <figure className="@container h-full">
-      <button
-        type="button"
-        onClick={() => setOpen(true)}
-        className="group flex h-full w-full flex-col rounded-2xl border bg-card p-5 text-left shadow-soft transition-shadow hover:shadow-lifted"
-        aria-label={`${title}: open the full breakdown`}
-      >
+      {/* "Stretched button": the Full breakdown button's hit area covers the whole card. */}
+      <div className="group relative flex h-full w-full flex-col rounded-2xl border bg-card p-5 shadow-soft transition-shadow has-[button:hover]:shadow-lifted">
         <figcaption className="mb-4 flex w-full items-center justify-between gap-2">
           <h3 className="text-xl">{title}</h3>
-          <span className="inline-flex items-center text-xs text-muted-foreground transition-colors group-hover:text-foreground">
+          <button
+            type="button"
+            onClick={() => setOpen(true)}
+            className="inline-flex items-center text-xs text-muted-foreground transition-colors group-hover:text-foreground after:absolute after:inset-0 after:rounded-2xl focus-visible:outline-none focus-visible:after:outline-2 focus-visible:after:outline-ring"
+          >
+            <span className="sr-only">{title}: </span>
             Full breakdown
             <ChevronRight className="size-4" aria-hidden="true" />
-          </span>
+          </button>
         </figcaption>
         <div className="flex w-full items-center gap-3 @xs:gap-6">
           <div className="w-[38%] max-w-44 shrink-0 @xs:w-[42%]">
@@ -154,7 +157,7 @@ export function DonutCard({ title, measure, allocation, ungrouped, emptyText }: 
             ))}
           </ul>
         </div>
-      </button>
+      </div>
 
       <BreakdownSheet
         open={open}

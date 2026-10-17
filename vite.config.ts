@@ -12,6 +12,11 @@ export default defineConfig({
       '@': fileURLToPath(new URL('./src', import.meta.url)),
     },
   },
+  build: {
+    // The entry chunk is React + the Supabase client + the query cache, which every screen
+    // needs (~150 kB gzipped); screens themselves are split out and load on demand.
+    chunkSizeWarningLimit: 600,
+  },
   test: {
     include: ['src/**/*.test.ts', 'src/**/*.test.tsx'],
     environment: 'node',

@@ -144,6 +144,8 @@ export function SearchPage() {
     <>
       <DetailHeader backTo={paths.home} backLabel="Dashboard" title="Search" />
       <PageContainer>
+        {/* The visible title is in the header bar; this gives the page its main heading. */}
+        <h1 className="sr-only">Search the wedding</h1>
         <search className="sticky top-16 z-20 -mx-4 bg-background/90 px-4 pt-4 pb-2 backdrop-blur sm:-mx-6 sm:px-6">
           <form onSubmit={openFirst}>
             <label htmlFor="search-input" className="sr-only">
