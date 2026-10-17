@@ -5,6 +5,7 @@ import {
   countdownParts,
   daysBetween,
   formatDate,
+  formatRelative,
   localStartOfDay,
   todayIso,
 } from './dates'
@@ -58,5 +59,20 @@ describe('live countdown', () => {
     const target = Date.UTC(2028, 6, 1)
     expect(countdownParts(target, target)).toMatchObject({ days: 0, seconds: 0, arrived: true })
     expect(countdownParts(target, target + 60_000).arrived).toBe(true)
+  })
+})
+
+describe('formatRelative', () => {
+  const now = new Date(2026, 9, 16, 12, 0, 0)
+  const ago = (ms: number) => new Date(now.getTime() - ms).toISOString()
+  it.each([
+    [10_000, 'Just now'],
+    [5 * 60_000, '5 min ago'],
+    [3 * 3_600_000, '3 hours ago'],
+    [24 * 3_600_000, 'Yesterday'],
+    [4 * 86_400_000, '4 days ago'],
+    [20 * 86_400_000, 'Sep 26, 2026'],
+  ])('%i ms ago → %s', (ms, label) => {
+    expect(formatRelative(ago(ms), now)).toBe(label)
   })
 })

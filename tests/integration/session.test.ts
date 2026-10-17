@@ -91,4 +91,44 @@ describe('planner sessions', () => {
     expect(error).not.toBeNull()
     await client.auth.signOut()
   })
+
+  it('changes the password: the old one stops working, the new one works, other devices are signed out', async () => {
+    const phone = await signedInClient(f.planner.email, f.planner.password)
+    const laptop = await signedInClient(f.planner.email, f.planner.password)
+    const laptopRefresh = (await laptop.auth.getSession()).data.session!.refresh_token
+    const next = `${f.planner.password}-changed`
+
+    // The app re-checks the current password first, which also gives a fresh session.
+    expect(
+      (
+        await phone.auth.signInWithPassword({
+          email: f.planner.email,
+          password: f.planner.password,
+        })
+      ).error,
+    ).toBeNull()
+    expect((await phone.auth.updateUser({ password: next })).error).toBeNull()
+    expect((await phone.auth.signOut({ scope: 'others' })).error).toBeNull()
+
+    const old = await guestClient().auth.signInWithPassword({
+      email: f.planner.email,
+      password: f.planner.password,
+    })
+    expect(old.error).not.toBeNull()
+    const fresh = await guestClient().auth.signInWithPassword({
+      email: f.planner.email,
+      password: next,
+    })
+    expect(fresh.error).toBeNull()
+
+    const { error: laptopError } = await guestClient().auth.refreshSession({
+      refresh_token: laptopRefresh,
+    })
+    expect(laptopError).not.toBeNull()
+    expect((await insertEvent(phone)).error).toBeNull()
+
+    // Leave the fixture's password as it was for any later test.
+    await phone.auth.updateUser({ password: f.planner.password })
+    await phone.auth.signOut()
+  })
 })

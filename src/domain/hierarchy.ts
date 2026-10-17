@@ -8,6 +8,7 @@
  */
 import type {
   Activity,
+  ActivityLink,
   EventCategory,
   Id,
   IsoTimestamp,
@@ -53,7 +54,8 @@ export function selectActive(snapshot: WeddingSnapshot): ActiveSnapshot {
   }
 }
 
-export type DeletableKind = 'definition' | 'event' | 'category' | 'activity' | 'payment'
+export type DeletableKind =
+  'definition' | 'event' | 'category' | 'activity' | 'payment' | 'link' | 'image'
 
 export type DeletedItem = {
   kind: DeletableKind
@@ -103,7 +105,8 @@ function ancestorsOf(kind: DeletableKind, id: Id, lookup: Lookup): Ancestor[] {
   let categoryId: Id | undefined
   let eventId: Id | undefined
 
-  if (kind === 'payment') activityId = id
+  // Payments, links and photos all hang off an activity; callers pass its id.
+  if (kind === 'payment' || kind === 'link' || kind === 'image') activityId = id
   if (kind === 'activity') categoryId = lookup.activities.get(id)?.eventCategoryId
   if (kind === 'category') eventId = lookup.categories.get(id)?.eventId
 
@@ -164,6 +167,7 @@ function toDeletedItem(
 export function listDeletedItems(
   snapshot: WeddingSnapshot,
   formatPaymentLabel: (payment: Payment) => string,
+  formatLinkLabel: (link: ActivityLink) => string = (link) => link.label || link.url,
 ): DeletedItem[] {
   const lookup = buildLookup(snapshot)
   const items: DeletedItem[] = []
@@ -198,6 +202,33 @@ export function listDeletedItems(
           formatPaymentLabel(p),
           p.deletedAt,
           ancestorsOf('payment', p.activityId, lookup),
+        ),
+      )
+    }
+  }
+
+  for (const l of snapshot.activityLinks) {
+    if (l.deletedAt) {
+      items.push(
+        toDeletedItem(
+          'link',
+          l.id,
+          formatLinkLabel(l),
+          l.deletedAt,
+          ancestorsOf('link', l.activityId, lookup),
+        ),
+      )
+    }
+  }
+  for (const i of snapshot.activityImages) {
+    if (i.deletedAt) {
+      items.push(
+        toDeletedItem(
+          'image',
+          i.id,
+          'Photo',
+          i.deletedAt,
+          ancestorsOf('image', i.activityId, lookup),
         ),
       )
     }
