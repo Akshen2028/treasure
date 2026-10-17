@@ -14,6 +14,9 @@ const Toaster = ({ ...props }: ToasterProps) => {
       theme="light"
       // Bottom on all sizes: at the top, toasts would cover header actions on phones.
       position="bottom-center"
+      // Keep feedback brief so quick successive saves don't pile up over the page.
+      visibleToasts={2}
+      duration={3000}
       mobileOffset={{ bottom: 'calc(env(safe-area-inset-bottom) + 16px)' }}
       className="toaster group"
       icons={{
