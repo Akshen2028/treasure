@@ -8,10 +8,12 @@ import { PlannerLoginForm } from '@/components/auth/PlannerLoginForm'
 import { Wordmark } from '@/components/brand/Wordmark'
 import { SplashScreen } from '@/components/feedback/SplashScreen'
 import { Button } from '@/components/ui/button'
+import { useDocumentTitle } from '@/hooks/useDocumentTitle'
 
 export function WelcomePage() {
   const { status, mode, continueAsGuest } = useAccess()
   const [showPlannerForm, setShowPlannerForm] = useState(false)
+  useDocumentTitle('Welcome')
 
   if (status === 'initializing') return <SplashScreen />
   // Returning visitors, and anyone who just chose, go straight to the dashboard.
@@ -26,7 +28,9 @@ export function WelcomePage() {
       />
 
       <div className="relative flex w-full max-w-sm animate-in flex-col items-center text-center duration-500 fade-in slide-in-from-bottom-2">
-        <Wordmark size="lg" className="flex-col gap-4" />
+        <h1>
+          <Wordmark size="lg" className="flex-col gap-4" />
+        </h1>
         <p className="mt-4 font-heading text-xl text-muted-foreground italic">
           Every celebration, beautifully budgeted.
         </p>

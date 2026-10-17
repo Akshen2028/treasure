@@ -2,48 +2,70 @@ import { createBrowserRouter } from 'react-router'
 
 import { RequireEntered } from '@/auth/RequireEntered'
 import { RouteError } from '@/components/feedback/RouteError'
-import { ActivityPage } from '@/pages/ActivityPage'
-import { AiExportPage } from '@/pages/AiExportPage'
-import { CategoryPage } from '@/pages/CategoryPage'
-import { EventPage } from '@/pages/EventPage'
-import { HomePage } from '@/pages/HomePage'
-import { NotFoundPage } from '@/pages/NotFoundPage'
-import { PaymentsPage } from '@/pages/PaymentsPage'
-import { RecentlyDeletedPage } from '@/pages/RecentlyDeletedPage'
-import { SearchPage } from '@/pages/SearchPage'
-import { SettingsPage } from '@/pages/SettingsPage'
+import { SplashScreen } from '@/components/feedback/SplashScreen'
 import { WelcomePage } from '@/pages/WelcomePage'
 
 import { RootLayout } from './RootLayout'
 
+/*
+ * Every screen except Welcome loads on demand, so the first visit only downloads what it
+ * needs (for example, the charts library is fetched with the dashboard, not up front).
+ */
 export const router = createBrowserRouter([
   {
     element: <RootLayout />,
     errorElement: <RouteError />,
+    hydrateFallbackElement: <SplashScreen />,
     children: [
       { path: '/', element: <WelcomePage /> },
       {
         // Everything past the welcome screen requires choosing guest or planner first.
         element: <RequireEntered />,
         children: [
-          { path: '/home', element: <HomePage /> },
-          { path: '/search', element: <SearchPage /> },
-          { path: '/settings', element: <SettingsPage /> },
-          { path: '/settings/deleted', element: <RecentlyDeletedPage /> },
-          { path: '/settings/export', element: <AiExportPage /> },
-          { path: '/events/:eventId', element: <EventPage /> },
-          { path: '/events/:eventId/categories/:categoryId', element: <CategoryPage /> },
+          {
+            path: '/home',
+            lazy: async () => ({ Component: (await import('@/pages/HomePage')).HomePage }),
+          },
+          {
+            path: '/search',
+            lazy: async () => ({ Component: (await import('@/pages/SearchPage')).SearchPage }),
+          },
+          {
+            path: '/settings',
+            lazy: async () => ({ Component: (await import('@/pages/SettingsPage')).SettingsPage }),
+          },
+          {
+            path: '/settings/deleted',
+            lazy: async () => ({
+              Component: (await import('@/pages/RecentlyDeletedPage')).RecentlyDeletedPage,
+            }),
+          },
+          {
+            path: '/settings/export',
+            lazy: async () => ({ Component: (await import('@/pages/AiExportPage')).AiExportPage }),
+          },
+          {
+            path: '/events/:eventId',
+            lazy: async () => ({ Component: (await import('@/pages/EventPage')).EventPage }),
+          },
+          {
+            path: '/events/:eventId/categories/:categoryId',
+            lazy: async () => ({ Component: (await import('@/pages/CategoryPage')).CategoryPage }),
+          },
           {
             path: '/events/:eventId/categories/:categoryId/activities/:activityId',
-            element: <ActivityPage />,
+            lazy: async () => ({ Component: (await import('@/pages/ActivityPage')).ActivityPage }),
           },
           {
             path: '/events/:eventId/categories/:categoryId/activities/:activityId/payments',
-            element: <PaymentsPage />,
+            lazy: async () => ({ Component: (await import('@/pages/PaymentsPage')).PaymentsPage }),
           },
         ],
       },
-      { path: '*', element: <NotFoundPage /> },
+      {
+        path: '*',
+        lazy: async () => ({ Component: (await import('@/pages/NotFoundPage')).NotFoundPage }),
+      },
     ],
   },
 ])

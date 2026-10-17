@@ -33,6 +33,12 @@ npm run dev
 | `npm run planner:setup`     | Create/reset the planner account               |
 | `npm run seed:dev -- --yes` | Replace the wedding's content with sample data |
 
+## Installing on a phone
+
+The app ships a web manifest and icons (`public/manifest.webmanifest`, `public/icons/`), so it can be added to the Home Screen and opens full-screen at the dashboard. Browsers only offer this over HTTPS, so it works once the app is hosted, not over the plain-http LAN address used for testing.
+
+Every screen except Welcome loads on demand, so the first visit downloads only what that screen needs.
+
 ## Project layout
 
 ```

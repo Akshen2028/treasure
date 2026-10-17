@@ -3,6 +3,7 @@ import type { ReactNode } from 'react'
 import { Link } from 'react-router'
 
 import { Button } from '@/components/ui/button'
+import { useDocumentTitle } from '@/hooks/useDocumentTitle'
 
 type DetailHeaderProps = {
   /** Where the back button goes. Explicit parent URLs keep deep links working. */
@@ -17,6 +18,7 @@ type DetailHeaderProps = {
 
 /** Sticky header for every detail screen, with a clear way back to the parent. */
 export function DetailHeader({ backTo, backLabel, title, actions }: DetailHeaderProps) {
+  useDocumentTitle(title)
   return (
     <header className="sticky top-0 z-30 border-b border-border/60 bg-background/85 pt-safe backdrop-blur-md">
       <div className="mx-auto grid h-16 w-full max-w-3xl grid-cols-[1fr_auto_1fr] items-center gap-2 px-2 sm:px-4">

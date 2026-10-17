@@ -10,6 +10,7 @@ export function NotFoundPage() {
   return (
     <PageContainer className="grid min-h-dvh place-items-center">
       <EmptyState
+        headingLevel="h1"
         icon={Compass}
         title="Page not found"
         description="This page doesn't exist or may have been moved."
