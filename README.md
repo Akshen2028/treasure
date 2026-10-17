@@ -88,4 +88,15 @@ They create a temporary test wedding and test users, and remove them afterwards,
 leftovers from crashed runs (weddings with slug `test-*`, users at
 `@integration.wedonomics.test`). Never give a real wedding a `test-` slug.
 
+## Deployment
+
+Hosted on Vercel at <https://wedonomics.vercel.app>, deployed automatically from `main`.
+`vercel.json` sends every route to the app (so links and refreshes work), sets security
+headers (a Content Security Policy that allows only this site and the Supabase project) and
+caches built assets long-term.
+
+The Vercel project needs the four public `VITE_*` values from `.env.example`. The Supabase
+secret key never goes to Vercel. If the Supabase project changes, update its address in the
+policy in `vercel.json` as well.
+
 Built in staged steps, one branch and PR per step.
