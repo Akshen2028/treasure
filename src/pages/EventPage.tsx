@@ -21,6 +21,7 @@ import { AddCategorySheet } from '@/features/categories/AddCategorySheet'
 import { CategoryCard } from '@/features/categories/CategoryCard'
 import { activityCount, categoriesForEvent } from '@/features/categories/categoryLogic'
 import { EventFormSheet } from '@/features/events/EventFormSheet'
+import { EventCover } from '@/features/media/EventCover'
 
 function DeletedEventNotice({ event }: { event: WeddingEvent }) {
   const { isPlanner } = useAccess()
@@ -173,6 +174,7 @@ function EventDetails({ data, eventId }: { data: WeddingData; eventId: string })
         }
       />
       <PageContainer>
+        <EventCover event={event} isPlanner={isPlanner} />
         <section className="pt-8">
           <h1 className="text-4xl sm:text-5xl">{event.name}</h1>
           <p className="mt-3 flex flex-col gap-1.5 text-muted-foreground sm:flex-row sm:gap-5">

@@ -7,6 +7,7 @@
  */
 import type {
   Activity,
+  ActivityImage,
   ActivityLink,
   CategoryDefinition,
   EventCategory,
@@ -64,6 +65,14 @@ export type NewActivityLink = Pick<ActivityLink, 'activityId' | 'url'> & {
 } & Partial<Pick<ActivityLink, 'label' | 'sortOrder'>>
 export type ActivityLinkPatch = Partial<Pick<ActivityLink, 'url' | 'label' | 'sortOrder'>>
 
+/** A photo already resized and encoded in the browser, ready to store. */
+export type PreparedImage = {
+  full: { blob: Blob; mimeType: 'image/jpeg' | 'image/png' | 'image/webp' | 'image/gif' }
+  thumb: { blob: Blob; mimeType: 'image/jpeg' | 'image/png' | 'image/webp' | 'image/gif' } | null
+  width: number
+  height: number
+}
+
 /** Thrown when the wedding the app is configured for does not exist. */
 export class WeddingNotFoundError extends Error {
   readonly slug: string
@@ -115,6 +124,25 @@ export interface WeddingRepository {
 
   createActivityLink(input: NewActivityLink): Promise<ActivityLink>
   updateActivityLink(id: Id, patch: ActivityLinkPatch): Promise<ActivityLink>
+
+  /**
+   * Stores a photo and records it on the activity. If recording fails, the uploaded files
+   * are removed so nothing is orphaned.
+   */
+  addActivityImage(input: {
+    weddingId: Id
+    activityId: Id
+    image: PreparedImage
+    sortOrder?: number
+  }): Promise<ActivityImage>
+  /** Sets, replaces or (with null) removes an event's cover photo. */
+  setEventCover(input: {
+    weddingId: Id
+    eventId: Id
+    image: PreparedImage | null
+  }): Promise<WeddingEvent>
+  /** Public URL for a stored media path. */
+  mediaUrl(path: string): string
 
   /** Marks a record deleted. Its children are hidden, not modified. */
   softDelete(kind: SoftDeletableKind, id: Id): Promise<void>
