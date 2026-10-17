@@ -1,4 +1,4 @@
-import { ChevronRight, CircleOff, ImageIcon, ReceiptText, RotateCcw } from 'lucide-react'
+import { ChevronRight, CircleOff, ReceiptText, RotateCcw } from 'lucide-react'
 import { useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router'
 
@@ -16,11 +16,12 @@ import { useDeleteWithUndo, useRestoreWithToast } from '@/data/softDelete'
 import type { ActivitySummary } from '@/domain/budget'
 import { formatCad } from '@/domain/money'
 import { ActivityFormSheet } from '@/features/activities/ActivityFormSheet'
-import { linksForActivity } from '@/features/activities/activityLogic'
+import { imagesForActivity, linksForActivity } from '@/features/activities/activityLogic'
 import { ActivityMoney } from '@/features/activities/ActivityMoney'
 import { ActivityStatusMenu } from '@/features/activities/ActivityStatusMenu'
 import { LinksSection } from '@/features/activities/LinksSection'
 import { StatusBadge } from '@/features/activities/StatusBadge'
+import { PhotoGallery } from '@/features/media/PhotoGallery'
 
 type Params = { eventId: string; categoryId: string; activityId: string }
 
@@ -206,15 +207,13 @@ function ActivityDetails({
         {activity.description && <TextBlock title="Description" text={activity.description} />}
         {activity.notes && <TextBlock title="Notes" text={activity.notes} />}
 
-        <section className="mt-8" aria-labelledby="photos-heading">
-          <h2 id="photos-heading" className="mb-3 text-2xl">
-            Photos
-          </h2>
-          <p className="rounded-2xl border border-dashed px-4 py-5 text-sm text-muted-foreground">
-            <ImageIcon className="mr-2 inline size-4 text-gold" aria-hidden="true" />
-            Photo uploads arrive in step 10.
-          </p>
-        </section>
+        <PhotoGallery
+          images={imagesForActivity(data.active, activity.id)}
+          activityName={activity.name}
+          isPlanner={isPlanner}
+          weddingId={data.snapshot.wedding.id}
+          activityId={activity.id}
+        />
 
         <LinksSection
           links={linksForActivity(data.active, activity.id)}

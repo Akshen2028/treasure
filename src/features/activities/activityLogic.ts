@@ -1,5 +1,5 @@
 import type { ActiveSnapshot } from '@/domain/hierarchy'
-import type { Activity, ActivityLink, Id } from '@/domain/types'
+import type { Activity, ActivityImage, ActivityLink, Id } from '@/domain/types'
 
 const byOrder = <T extends { sortOrder: number; createdAt: string }>(a: T, b: T) =>
   a.sortOrder - b.sortOrder || a.createdAt.localeCompare(b.createdAt)
@@ -12,4 +12,9 @@ export function activitiesForCategory(active: ActiveSnapshot, eventCategoryId: I
 /** An activity's active links in display order. */
 export function linksForActivity(active: ActiveSnapshot, activityId: Id): ActivityLink[] {
   return active.activityLinks.filter((l) => l.activityId === activityId).sort(byOrder)
+}
+
+/** An activity's active photos in display order. */
+export function imagesForActivity(active: ActiveSnapshot, activityId: Id): ActivityImage[] {
+  return active.activityImages.filter((i) => i.activityId === activityId).sort(byOrder)
 }

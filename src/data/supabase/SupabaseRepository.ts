@@ -1,7 +1,9 @@
 import type { PostgrestError, SupabaseClient } from '@supabase/supabase-js'
 
 import type { Id, WeddingSnapshot } from '@/domain/types'
+import { activityImagePaths, eventCoverPath } from '@/domain/media'
 import type { Database } from '@/lib/database.types'
+import { randomId } from '@/lib/randomId'
 
 import {
   RepositoryError,
@@ -13,6 +15,11 @@ import * as map from './mappers'
 
 type Client = SupabaseClient<Database>
 type TableName = keyof Database['public']['Tables']
+
+export const MEDIA_BUCKET = 'wedding-media'
+
+/** Uploaded media never changes in place (new uploads get new paths), so cache it for a year. */
+const MEDIA_CACHE_SECONDS = '31536000'
 
 const SOFT_DELETE_TABLES = {
   definition: 'category_definitions',
@@ -86,6 +93,32 @@ export function createSupabaseRepository(client: Client): WeddingRepository {
       rows.push(...page)
       if (page.length < PAGE_SIZE) return rows
     }
+  }
+
+  async function upload(path: string, blob: Blob, contentType: string) {
+    const { error } = await client.storage
+      .from(MEDIA_BUCKET)
+      .upload(path, blob, { contentType, cacheControl: MEDIA_CACHE_SECONDS, upsert: false })
+    if (error) {
+      const forbidden = /row-level security|unauthorized|not authorized/i.test(error.message)
+      throw new RepositoryError(
+        forbidden ? 'forbidden' : /size|large/i.test(error.message) ? 'invalid' : 'unknown',
+        forbidden
+          ? 'You don’t have permission to upload photos.'
+          : /size|large/i.test(error.message)
+            ? 'That photo is too large to upload.'
+            : 'The photo couldn’t be uploaded. Please try again.',
+      )
+    }
+  }
+
+  /** Best-effort cleanup; a leftover file is harmless, so failures are ignored. */
+  async function removeQuietly(paths: string[]) {
+    if (paths.length)
+      await client.storage
+        .from(MEDIA_BUCKET)
+        .remove(paths)
+        .catch(() => {})
   }
 
   async function setDeletedAt(kind: SoftDeletableKind, id: Id, deletedAt: string | null) {
@@ -270,6 +303,77 @@ export function createSupabaseRepository(client: Client): WeddingRepository {
       )
       return map.toActivityLink(row)
     },
+
+    async addActivityImage({ weddingId, activityId, image, sortOrder }) {
+      const id = randomId()
+      const paths = activityImagePaths(
+        weddingId,
+        activityId,
+        id,
+        image.full.mimeType,
+        image.thumb?.mimeType ?? image.full.mimeType,
+      )
+      const uploaded: string[] = []
+      try {
+        await upload(paths.full, image.full.blob, image.full.mimeType)
+        uploaded.push(paths.full)
+        if (image.thumb) {
+          await upload(paths.thumb, image.thumb.blob, image.thumb.mimeType)
+          uploaded.push(paths.thumb)
+        }
+        const row = unwrap(
+          await client
+            .from('activity_images')
+            .insert({
+              wedding_id: weddingId,
+              activity_id: activityId,
+              storage_path: paths.full,
+              thumbnail_path: image.thumb ? paths.thumb : null,
+              mime_type: image.full.mimeType,
+              size_bytes: image.full.blob.size,
+              width: image.width,
+              height: image.height,
+              sort_order: sortOrder ?? 0,
+            })
+            .select()
+            .single(),
+        )
+        return map.toActivityImage(row)
+      } catch (error) {
+        await removeQuietly(uploaded)
+        throw error
+      }
+    },
+
+    async setEventCover({ weddingId, eventId, image }) {
+      const current = unwrap(
+        await client.from('events').select('cover_image_path').eq('id', eventId).single(),
+      )
+      const previous = current.cover_image_path
+      let newPath: string | null = null
+      if (image) {
+        newPath = eventCoverPath(weddingId, eventId, randomId(), image.full.mimeType)
+        await upload(newPath, image.full.blob, image.full.mimeType)
+      }
+      try {
+        const row = unwrap(
+          await client
+            .from('events')
+            .update({ cover_image_path: newPath })
+            .eq('id', eventId)
+            .select()
+            .single(),
+        )
+        // The old cover is no longer referenced anywhere.
+        if (previous && previous !== newPath) await removeQuietly([previous])
+        return map.toEvent(row)
+      } catch (error) {
+        if (newPath) await removeQuietly([newPath])
+        throw error
+      }
+    },
+
+    mediaUrl: (path) => client.storage.from(MEDIA_BUCKET).getPublicUrl(path).data.publicUrl,
 
     softDelete: (kind, id) => setDeletedAt(kind, id, new Date().toISOString()),
     restore: (kind, id) => setDeletedAt(kind, id, null),
