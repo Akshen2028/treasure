@@ -36,6 +36,12 @@
   --champagne: #eadbc2;
   --taupe: #a39282;
 
+  /*
+   * Data colour for charts and meters: a richer gold than --gold, validated with the
+   * data-viz checks (lightness band, chroma ≥ 0.10, ≥ 3:1 against the card surface).
+   */
+  --chart-1: #b07f28;
+
   /* Status */
   --destructive: #a6463a;
   --warning: #9a6a1c;
@@ -73,6 +79,7 @@
   --color-gold-soft: var(--gold-soft);
   --color-champagne: var(--champagne);
   --color-taupe: var(--taupe);
+  --color-chart-1: var(--chart-1);
   --color-destructive: var(--destructive);
   --color-warning: var(--warning);
   --color-warning-soft: var(--warning-soft);

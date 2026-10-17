@@ -12,6 +12,8 @@ import type { WeddingData } from '@/data/queries'
 import { formatDate } from '@/domain/dates'
 import { sortEvents } from '@/domain/ordering'
 import type { Wedding } from '@/domain/types'
+import { DashboardCharts } from '@/features/dashboard/DashboardCharts'
+import { WeddingOverview } from '@/features/dashboard/WeddingOverview'
 import { EventCard } from '@/features/events/EventCard'
 import { EventFormSheet } from '@/features/events/EventFormSheet'
 
@@ -102,6 +104,10 @@ export function HomePage() {
           {(data) => (
             <>
               <WeddingHero wedding={data.snapshot.wedding} />
+              <div className="mt-8">
+                <WeddingOverview budget={data.budget} />
+              </div>
+              {data.active.events.length > 0 && <DashboardCharts data={data} />}
               <EventsSection data={data} />
             </>
           )}

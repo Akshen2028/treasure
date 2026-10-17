@@ -34,7 +34,7 @@ export function SpendProgress({
       aria-valuemax={100}
       aria-valuenow={Math.round(progress.barPercent)}
       className={cn(
-        'w-full overflow-hidden rounded-full bg-muted',
+        'w-full overflow-hidden rounded-full bg-gold-soft/70',
         size === 'sm' ? 'h-1.5' : 'h-2.5',
         className,
       )}
@@ -42,7 +42,7 @@ export function SpendProgress({
       <div
         className={cn(
           'h-full rounded-full transition-[width] duration-700 ease-out',
-          progress.overBudget ? 'bg-destructive/80' : 'bg-gold',
+          progress.overBudget ? 'bg-destructive/80' : 'bg-chart-1',
         )}
         style={{ width: `${progress.barPercent}%` }}
       />
