@@ -46,6 +46,8 @@ export function useRestoreWithToast() {
   })
   return {
     restore: (target: Target, label: string) => mutation.mutate({ ...target, label }),
+    /** Awaitable, for restoring a parent before its child. */
+    restoreAsync: (target: Target, label: string) => mutation.mutateAsync({ ...target, label }),
     isPending: mutation.isPending,
   }
 }

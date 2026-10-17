@@ -168,3 +168,51 @@ describe('deleted category definitions', () => {
     ])
   })
 })
+
+describe('deleted photos and links', () => {
+  it('appear in Recently Deleted with the activity they belong to', () => {
+    const s: WeddingSnapshot = {
+      ...base(),
+      activityLinks: [
+        {
+          id: 'l1',
+          activityId: 'lighting',
+          url: 'https://vendor.ca/quote',
+          label: 'Quote',
+          sortOrder: 0,
+          deletedAt: '2026-10-12T00:00:00Z',
+          createdAt: '',
+          updatedAt: '',
+        },
+      ],
+      activityImages: [
+        {
+          id: 'i1',
+          activityId: 'florals',
+          storagePath: 'w1/activities/florals/a.webp',
+          thumbnailPath: null,
+          mimeType: 'image/webp',
+          sizeBytes: 100,
+          width: 1,
+          height: 1,
+          sortOrder: 0,
+          deletedAt: '2026-10-11T00:00:00Z',
+          createdAt: '',
+          updatedAt: '',
+        },
+      ],
+    }
+    expect(listDeletedItems(s, paymentLabel)).toEqual([
+      expect.objectContaining({
+        kind: 'link',
+        label: 'Quote',
+        context: ['reception', 'decor', 'lighting'],
+      }),
+      expect.objectContaining({
+        kind: 'image',
+        label: 'Photo',
+        context: ['reception', 'decor', 'florals'],
+      }),
+    ])
+  })
+})

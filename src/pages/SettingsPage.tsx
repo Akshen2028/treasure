@@ -15,9 +15,12 @@ import { Link } from 'react-router'
 import { paths } from '@/app/paths'
 import { useAccess } from '@/auth/AccessContext'
 import { PlannerLoginDialog } from '@/components/auth/PlannerLoginDialog'
+import { WeddingDataBoundary } from '@/components/feedback/WeddingDataBoundary'
 import { DetailHeader } from '@/components/layout/DetailHeader'
 import { PageContainer } from '@/components/layout/PageContainer'
 import { Button } from '@/components/ui/button'
+import { ChangePasswordButton } from '@/features/settings/ChangePassword'
+import { BudgetModeSetting, WeddingDetailsForm } from '@/features/settings/WeddingSettings'
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
@@ -133,20 +136,42 @@ export function SettingsPage() {
         </Section>
 
         {isPlanner && (
-          <Section title="Planner tools">
-            <LinkRow
-              to={paths.recentlyDeleted}
-              icon={Trash2}
-              label="Recently Deleted"
-              hint="Restore deleted events, categories and activities"
-            />
-            <LinkRow
-              to={paths.aiExport}
-              icon={FileDown}
-              label="Export for AI"
-              hint="Download the wedding as JSON or Markdown"
-            />
-          </Section>
+          <WeddingDataBoundary>
+            {(data) => (
+              <>
+                <Section title="Wedding">
+                  <WeddingDetailsForm data={data} />
+                  <div className="border-t">
+                    <BudgetModeSetting data={data} />
+                  </div>
+                </Section>
+
+                <Section title="Planner tools">
+                  <LinkRow
+                    to={paths.recentlyDeleted}
+                    icon={Trash2}
+                    label="Recently Deleted"
+                    hint="Restore deleted events, categories, activities and more"
+                  />
+                  <LinkRow
+                    to={paths.aiExport}
+                    icon={FileDown}
+                    label="Export for AI"
+                    hint="Download the wedding as JSON or Markdown"
+                  />
+                </Section>
+
+                <Section title="Security">
+                  <div className="flex flex-col gap-3 p-5">
+                    <p className="text-sm text-muted-foreground">
+                      One shared password unlocks planner access on any device.
+                    </p>
+                    <ChangePasswordButton />
+                  </div>
+                </Section>
+              </>
+            )}
+          </WeddingDataBoundary>
         )}
       </PageContainer>
     </>

@@ -79,3 +79,21 @@ export function countdownParts(targetMs: number, nowMs: number): CountdownParts 
     arrived: remaining === 0,
   }
 }
+
+/**
+ * Short, friendly "when" for a past timestamp: "Just now", "5 min ago", "3 hours ago",
+ * "Yesterday", "4 days ago", then a date like "Sep 28, 2026".
+ */
+export function formatRelative(iso: string, now: Date = new Date()): string {
+  const then = new Date(iso)
+  const seconds = Math.round((now.getTime() - then.getTime()) / 1000)
+  if (seconds < 60) return 'Just now'
+  const minutes = Math.round(seconds / 60)
+  if (minutes < 60) return `${minutes} min ago`
+  const hours = Math.round(minutes / 60)
+  if (hours < 24) return `${hours} hour${hours === 1 ? '' : 's'} ago`
+  const days = daysBetween(todayIso(then), todayIso(now))
+  if (days === 1) return 'Yesterday'
+  if (days < 7) return `${days} days ago`
+  return formatDate(todayIso(then))
+}
