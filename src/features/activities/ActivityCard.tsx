@@ -19,6 +19,7 @@ export function ActivityCard({
 }) {
   return (
     <Link
+      viewTransition
       to={to}
       className="group flex flex-col gap-3 rounded-2xl border bg-card p-4 shadow-soft transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lifted sm:p-5"
     >

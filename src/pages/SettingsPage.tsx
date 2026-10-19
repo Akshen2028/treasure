@@ -46,6 +46,7 @@ function LinkRow({
 }) {
   return (
     <Link
+      viewTransition
       to={to}
       className="flex min-h-16 items-center gap-4 px-5 py-3 transition-colors hover:bg-muted/60 focus-visible:bg-muted/60 [&+&]:border-t"
     >

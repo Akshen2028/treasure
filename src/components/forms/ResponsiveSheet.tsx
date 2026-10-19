@@ -15,6 +15,7 @@ import {
   SheetTitle,
 } from '@/components/ui/sheet'
 import { useMediaQuery } from '@/hooks/useMediaQuery'
+import { useSwipeToDismiss } from '@/hooks/useSwipeToDismiss'
 
 type ResponsiveSheetProps = {
   open: boolean
@@ -25,8 +26,8 @@ type ResponsiveSheetProps = {
 }
 
 /**
- * Create/edit container: a bottom sheet on phones (easy to reach with a thumb) and a
- * centred dialog on larger screens.
+ * Create/edit container: a bottom sheet on phones (easy to reach with a thumb, swipe down to
+ * close) and a centred dialog on larger screens.
  */
 export function ResponsiveSheet({
   open,
@@ -36,6 +37,7 @@ export function ResponsiveSheet({
   children,
 }: ResponsiveSheetProps) {
   const isDesktop = useMediaQuery('(min-width: 640px)')
+  const swipeRef = useSwipeToDismiss(() => onOpenChange(false))
 
   if (isDesktop) {
     return (
@@ -54,8 +56,10 @@ export function ResponsiveSheet({
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent
+        ref={swipeRef}
         side="bottom"
-        className="max-h-[92dvh] gap-0 overflow-y-auto rounded-t-3xl border-0 bg-popover px-5 pt-3 pb-safe shadow-lifted"
+        // Swiped away: it has already slid out, so skip the exit animation.
+        className="max-h-[92dvh] gap-0 overflow-y-auto overscroll-contain rounded-t-3xl border-0 bg-popover px-5 pt-3 pb-safe shadow-lifted data-swiped:data-closed:animate-none"
       >
         <div aria-hidden="true" className="mx-auto mb-2 h-1.5 w-10 rounded-full bg-border" />
         <SheetHeader className="px-0 pt-2 pb-4">

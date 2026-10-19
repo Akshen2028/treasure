@@ -39,6 +39,7 @@ function paymentsSummary(summary: ActivitySummary): string {
 function PaymentsRow({ to, summary }: { to: string; summary: ActivitySummary }) {
   return (
     <Link
+      viewTransition
       to={to}
       className="group mt-4 flex min-h-16 items-center gap-4 rounded-2xl border bg-card px-5 py-4 shadow-soft transition-all hover:-translate-y-0.5 hover:shadow-lifted"
     >
@@ -115,7 +116,9 @@ function UnavailableActivity({
               </Button>
             ) : (
               <Button asChild variant="outline">
-                <Link to={back}>Go back</Link>
+                <Link viewTransition to={back}>
+                  Go back
+                </Link>
               </Button>
             )
           }
@@ -240,7 +243,7 @@ function ActivityDetails({
               confirmLabel="Delete activity"
               destructive
               onConfirm={() => {
-                navigate(categoryUrl)
+                navigate(categoryUrl, { viewTransition: true })
                 deleteWithUndo({ kind: 'activity', id: activity.id }, activity.name)
               }}
             />

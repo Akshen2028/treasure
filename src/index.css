@@ -144,6 +144,103 @@
   }
 }
 
+/*
+ * Page transitions (View Transitions API, see src/app/pageTransitions.ts). The new screen slides
+ * in from the side it lives on while the old one drifts away, both cross-fading; screens at the
+ * same level just cross-fade. The floating AI button keeps its own snapshot so it stays put.
+ */
+::view-transition-group(root) {
+  animation-duration: 340ms;
+  animation-timing-function: cubic-bezier(0.32, 0.72, 0, 1);
+}
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 340ms;
+  animation-timing-function: cubic-bezier(0.32, 0.72, 0, 1);
+  /* The default additive blend washes out text where the two screens overlap mid-slide. */
+  mix-blend-mode: normal;
+}
+:root[data-nav-direction='forward']::view-transition-old(root) {
+  animation-name: page-out-to-left;
+}
+:root[data-nav-direction='forward']::view-transition-new(root) {
+  animation-name: page-in-from-right;
+}
+:root[data-nav-direction='back']::view-transition-old(root) {
+  animation-name: page-out-to-right;
+}
+:root[data-nav-direction='back']::view-transition-new(root) {
+  animation-name: page-in-from-left;
+}
+:root[data-nav-direction='up']::view-transition-old(root),
+:root[data-nav-direction='down']::view-transition-new(root) {
+  animation: none;
+}
+:root[data-nav-direction='up']::view-transition-new(root) {
+  animation-name: page-in-from-below;
+}
+:root[data-nav-direction='down']::view-transition-old(root) {
+  z-index: 1;
+  animation-name: page-out-to-below;
+}
+:root[data-nav-direction='fade']::view-transition-old(root) {
+  animation: 200ms ease-out both page-fade-out;
+}
+:root[data-nav-direction='fade']::view-transition-new(root) {
+  animation: 260ms ease-out both page-fade-in;
+}
+.ai-chat-button {
+  view-transition-name: ai-chat-button;
+}
+
+@keyframes page-in-from-right {
+  from {
+    opacity: 0;
+    transform: translateX(24%);
+  }
+}
+@keyframes page-out-to-left {
+  to {
+    opacity: 0;
+    transform: translateX(-10%);
+  }
+}
+@keyframes page-in-from-left {
+  from {
+    opacity: 0;
+    transform: translateX(-24%);
+  }
+}
+@keyframes page-out-to-right {
+  to {
+    opacity: 0;
+    transform: translateX(10%);
+  }
+}
+@keyframes page-in-from-below {
+  from {
+    opacity: 0;
+    transform: translateY(12%);
+  }
+}
+@keyframes page-out-to-below {
+  to {
+    opacity: 0;
+    transform: translateY(12%);
+  }
+}
+@keyframes page-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+@keyframes page-fade-out {
+  to {
+    opacity: 0;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -152,5 +249,10 @@
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
+  }
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
   }
 }

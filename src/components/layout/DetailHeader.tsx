@@ -24,7 +24,7 @@ export function DetailHeader({ backTo, backLabel, title, actions }: DetailHeader
       <div className="mx-auto grid h-16 w-full max-w-3xl grid-cols-[1fr_auto_1fr] items-center gap-2 px-2 sm:px-4">
         <div className="min-w-0">
           <Button asChild variant="ghost" className="max-w-full gap-1 px-2 text-muted-foreground">
-            <Link to={backTo} aria-label={`Back to ${backLabel}`}>
+            <Link viewTransition to={backTo} aria-label={`Back to ${backLabel}`}>
               <ChevronLeft className="size-5" />
               <span className="truncate">{backLabel}</span>
             </Link>

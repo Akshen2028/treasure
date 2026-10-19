@@ -89,7 +89,7 @@ function EventForm({
         const created = await create.mutateAsync({ weddingId: wedding.id, ...parsed.value })
         toast.success(`${created.name} added`)
         onDone()
-        navigate(paths.event(created.id))
+        navigate(paths.event(created.id), { viewTransition: true })
       }
     } catch (error) {
       setServerError(errorMessage(error))

@@ -39,6 +39,7 @@ function ResultRow({ result, query }: { result: SearchResult; query: string }) {
   return (
     <li className="[&+&]:border-t">
       <Link
+        viewTransition
         to={resultUrl(result)}
         className="flex min-h-14 flex-col justify-center px-4 py-3 transition-colors hover:bg-muted/60 focus-visible:bg-muted/60"
       >
@@ -137,7 +138,7 @@ export function SearchPage() {
   function openFirst(e: FormEvent<HTMLFormElement>) {
     e.preventDefault()
     const first = document.querySelector<HTMLAnchorElement>('[data-search-results] a')
-    if (first) navigate(first.getAttribute('href')!)
+    if (first) navigate(first.getAttribute('href')!, { viewTransition: true })
   }
 
   return (

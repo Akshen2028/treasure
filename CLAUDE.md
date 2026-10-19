@@ -62,6 +62,8 @@ Auth, Storage). Node 24 via nvm (`.nvmrc`); prefix shell commands with
 - Accessibility: one `h1` per screen, labelled controls, never colour alone for status (icons
   for over budget). Charts are `aria-hidden` with a text legend beside them.
 - Planner-only controls render only for planners (`useAccess().isPlanner` / `PlannerOnly`).
+- Every `<Link>` gets `viewTransition` and every `navigate()` passes `{ viewTransition: true }`,
+  so page changes animate (direction rules in `src/app/pageTransitions.ts`).
 - Toasts via sonner; delete actions offer Undo; destructive actions use `ConfirmDialog`.
 - Phone testing over LAN http is an insecure context: no `crypto.randomUUID`, clipboard or
   Web Share without fallbacks (use `src/lib/randomId.ts`, `src/lib/download.ts`).

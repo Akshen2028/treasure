@@ -142,7 +142,9 @@ function EventDetails({ data, eventId }: { data: WeddingData; eventId: string })
               description="It may have been removed, or the link is incorrect."
               action={
                 <Button asChild variant="outline">
-                  <Link to={paths.home}>Back to dashboard</Link>
+                  <Link viewTransition to={paths.home}>
+                    Back to dashboard
+                  </Link>
                 </Button>
               }
               className="my-8"
@@ -224,7 +226,7 @@ function EventDetails({ data, eventId }: { data: WeddingData; eventId: string })
               confirmLabel="Delete event"
               destructive
               onConfirm={() => {
-                navigate(paths.home)
+                navigate(paths.home, { viewTransition: true })
                 deleteWithUndo({ kind: 'event', id: event.id }, event.name)
               }}
             />
