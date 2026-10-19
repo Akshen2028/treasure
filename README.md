@@ -90,13 +90,13 @@ leftovers from crashed runs (weddings with slug `test-*`, users at
 
 ## Deployment
 
-Hosted on Vercel at <https://wedonomics.vercel.app>, deployed automatically from `main`.
-`vercel.json` sends every route to the app (so links and refreshes work), sets security
-headers (a Content Security Policy that allows only this site and the Supabase project) and
-caches built assets long-term.
+Live at <https://www.mywedonomics.com> (hosted on Vercel), deployed automatically from `main`. See
+[DEPLOYMENT.md](DEPLOYMENT.md) for environment variables, domains, Supabase, verification and
+rollback.
 
-The Vercel project needs the four public `VITE_*` values from `.env.example`. The Supabase
-secret key never goes to Vercel. If the Supabase project changes, update its address in the
-policy in `vercel.json` as well.
+## Project docs
+
+[PLAN.md](PLAN.md) (product and architecture) · [PROGRESS.md](PROGRESS.md) (current state and
+next steps) · [CLAUDE.md](CLAUDE.md) (conventions for AI-assisted development).
 
 Built in staged steps, one branch and PR per step.
