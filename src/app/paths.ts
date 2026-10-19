@@ -9,6 +9,7 @@ export const paths = {
   settings: '/settings',
   recentlyDeleted: '/settings/deleted',
   aiExport: '/settings/export',
+  chat: '/chat',
   event: (eventId: string) => `/events/${eventId}`,
   category: (eventId: string, categoryId: string) => `/events/${eventId}/categories/${categoryId}`,
   activity: (eventId: string, categoryId: string, activityId: string) =>

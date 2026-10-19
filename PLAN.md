@@ -104,6 +104,22 @@ Wedding → Events → Categories → Activities → Payments (+ activity links 
   prompt. **The wedding data is never put in the URL** (history, logs, length limits).
   "Share file" appears only where the Web Share API can share files.
 
+### 9a. In-app AI chat ✅ (`src/domain/chat.ts`, `src/features/chat/`, `supabase/functions/chat/`)
+
+- The floating sparkle button (every screen after Welcome, planners only) opens the full-screen
+  chat page `/chat` (back returns to where it was opened). Settings → Export keeps "Open in
+  ChatGPT / Claude".
+- Claude Haiku 5.5 (cheapest; chosen by the user), effort `low`, read-only (no tools), plain
+  text answers. Each question sends the current Markdown export plus the conversation; the
+  export is prompt-cached.
+- Chats are in memory only (`ChatProvider` above the routes: kept while navigating, cleared on
+  refresh, "New chat", or lock); no database changes.
+- The API key lives only in the `chat` Edge Function. The function checks the session and
+  `is_planner(wedding_id)`, and validates sizes and turn order (`validateChatRequest`) before
+  calling Claude. The export comes from the browser: a planner could only spend their own
+  credit by sending other text.
+- Answers stream as newline-delimited JSON (`ChatStreamEvent`); Stop cancels the Claude call.
+
 ## 10. PWA and performance 🟡
 
 - ✅ Web manifest, icons (incl. maskable and apple-touch), standalone display, start at

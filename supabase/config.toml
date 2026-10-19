@@ -382,3 +382,8 @@ s3_region = "env(S3_REGION)"
 s3_access_key = "env(S3_ACCESS_KEY)"
 # Configures AWS_SECRET_ACCESS_KEY for S3 bucket
 s3_secret_key = "env(S3_SECRET_KEY)"
+
+# In-app AI chat. The function verifies the planner's session itself (supports the new
+# asymmetric JWT keys), so the gateway's legacy JWT check is off.
+[functions.chat]
+verify_jwt = false

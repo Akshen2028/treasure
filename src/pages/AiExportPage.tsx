@@ -11,6 +11,7 @@ import { DetailHeader } from '@/components/layout/DetailHeader'
 import { PageContainer } from '@/components/layout/PageContainer'
 import { Button } from '@/components/ui/button'
 import { type WeddingData, weddingKeys } from '@/data/queries'
+import { CHAT_SUGGESTIONS } from '@/domain/chat'
 import { buildWeddingExport, exportFileName, exportToJson, exportToMarkdown } from '@/domain/export'
 import { SendToAi } from '@/features/export/SendToAi'
 import { useMediaUrl } from '@/features/media/useMediaUrl'
@@ -22,13 +23,6 @@ const FORMATS = [
   { value: 'markdown', label: 'Markdown' },
   { value: 'json', label: 'JSON' },
 ] as const
-
-const PROMPTS = [
-  'Where are we most likely to go over budget, and what could we cut?',
-  'Which payments are still outstanding, and when should we plan for them?',
-  'Summarise our budget by event in a short table.',
-  'Which activities are still ideas that need booking soon?',
-]
 
 function ExportPanel({ data }: { data: WeddingData }) {
   const mediaUrl = useMediaUrl()
@@ -160,7 +154,7 @@ function ExportPanel({ data }: { data: WeddingData }) {
           Things to ask
         </h2>
         <ul className="list-disc space-y-1 pl-5 text-sm text-muted-foreground">
-          {PROMPTS.map((prompt) => (
+          {CHAT_SUGGESTIONS.map((prompt) => (
             <li key={prompt}>{prompt}</li>
           ))}
         </ul>
