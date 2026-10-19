@@ -11,7 +11,9 @@ import { PageContainer } from '@/components/layout/PageContainer'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { CHAT_LIMITS, CHAT_SUGGESTIONS } from '@/domain/chat'
+import { ChatChart } from '@/features/chat/ChatChart'
 import { useChatSession } from '@/features/chat/ChatContext'
+import { ChatEditCard } from '@/features/chat/ChatEditCard'
 import { useVisualViewport } from '@/hooks/useVisualViewport'
 import { cn } from '@/lib/utils'
 
@@ -24,7 +26,7 @@ function useBackTarget() {
 }
 
 function Conversation() {
-  const { messages, status, error, send, stop, reset, data } = useChatSession()
+  const { messages, status, error, send, stop, reset, updateEdit, data } = useChatSession()
   const backTo = useBackTarget()
   // iOS overlays the keyboard without resizing the page; fit the screen to what's visible.
   const visible = useVisualViewport(true)
@@ -114,7 +116,8 @@ function Conversation() {
           <div className="mb-2">
             <h1 className="text-4xl">Ask about the wedding</h1>
             <p className="mt-1 text-muted-foreground">
-              Claude answers from your current budget. Nothing here is saved.
+              Claude answers from your current budget, draws charts, and proposes changes you can
+              review and apply. The conversation isn’t saved.
             </p>
           </div>
 
@@ -135,25 +138,55 @@ function Conversation() {
             </div>
           )}
 
-          {messages.map((message, index) => (
-            <div
-              key={index}
-              className={cn(
-                'max-w-[85%] rounded-2xl px-4 py-3 leading-relaxed whitespace-pre-wrap',
-                message.role === 'user'
-                  ? 'self-end rounded-br-md bg-primary text-primary-foreground'
-                  : 'self-start rounded-bl-md bg-secondary text-secondary-foreground',
-              )}
-            >
-              <span className="sr-only">{message.role === 'user' ? 'You: ' : 'Claude: '}</span>
-              {message.content || (
-                <span className="inline-flex items-center gap-2 text-muted-foreground">
-                  <LoaderCircle className="size-4 animate-spin" aria-hidden="true" />
-                  Thinking…
-                </span>
-              )}
-            </div>
-          ))}
+          {messages.map((message, index) => {
+            const answering = streaming && index === messages.length - 1
+            // Leading line breaks (e.g. text that follows a chart) would show as blank space.
+            const text = message.content.trimStart()
+            const showBubble = text || (answering && message.attachments.length === 0)
+            return (
+              <div key={index} className="flex flex-col gap-3">
+                {showBubble && (
+                  <div
+                    className={cn(
+                      'max-w-[85%] rounded-2xl px-4 py-3 leading-relaxed whitespace-pre-wrap',
+                      message.role === 'user'
+                        ? 'self-end rounded-br-md bg-primary text-primary-foreground'
+                        : 'self-start rounded-bl-md bg-secondary text-secondary-foreground',
+                    )}
+                  >
+                    <span className="sr-only">
+                      {message.role === 'user' ? 'You: ' : 'Claude: '}
+                    </span>
+                    {text || (
+                      <span className="inline-flex items-center gap-2 text-muted-foreground">
+                        <LoaderCircle className="size-4 animate-spin" aria-hidden="true" />
+                        Thinking…
+                      </span>
+                    )}
+                  </div>
+                )}
+                {data &&
+                  message.attachments.map((attachment, attachmentIndex) =>
+                    attachment.type === 'chart' ? (
+                      <ChatChart
+                        key={attachmentIndex}
+                        spec={attachment.spec}
+                        targets={attachment.targets}
+                        data={data}
+                      />
+                    ) : (
+                      <ChatEditCard
+                        key={attachmentIndex}
+                        attachment={attachment}
+                        weddingId={data.snapshot.wedding.id}
+                        snapshot={data.snapshot}
+                        onUpdate={(patch) => updateEdit(index, attachmentIndex, patch)}
+                      />
+                    ),
+                  )}
+              </div>
+            )
+          })}
 
           {error && (
             <div className="flex flex-col items-start gap-2 rounded-2xl border border-destructive/40 px-4 py-3 text-sm">

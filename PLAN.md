@@ -109,9 +109,42 @@ Wedding → Events → Categories → Activities → Payments (+ activity links 
 - The floating sparkle button (every screen after Welcome, planners only) opens the full-screen
   chat page `/chat` (back returns to where it was opened). Settings → Export keeps "Open in
   ChatGPT / Claude".
-- Claude Haiku 5.5 (cheapest; chosen by the user), effort `low`, read-only (no tools), plain
-  text answers. Each question sends the current Markdown export plus the conversation; the
-  export is prompt-cached.
+- Claude Haiku 5.5 (cheapest; chosen by the user), effort `low`, plain text answers. Each
+  question sends the current Markdown export, a list of short record references (E1, C1, A1,
+  P1, L1, D1; `buildChatRefs`) and the conversation; export + references are prompt-cached.
+- Tools (`src/domain/chatTools.ts`, shared with the function): `show_chart` and
+  `propose_edit`. The function runs the tool loop (max 5 rounds), validates every call
+  (`parseChartSpec` / `parseEditProposal`; invalid calls go back to Claude as errors) and
+  streams valid ones to the browser as `chart` / `edit` events.
+- Charts: Claude describes the chart, never its numbers: rows (`groupBy`: none, event,
+  category, activity, status, month), an optional split (stacked parts or one line each), up
+  to three figures (budget, paid, actual, still to pay, remaining, over by, count), filters
+  (scope to an event, event category or shared category across events; hand-picked items;
+  statuses; only over budget / still to pay / unpaid; sort; top N; month range, running
+  totals) and a form (donut, bars, progress, columns, line). The browser computes every
+  number from live data (`chatCharts.ts`). Level budgets (manual mode) are used when rows are
+  events, categories or the wedding and no activity-level filter applies; otherwise sums of
+  activity budgets.
+- Edits: never automatic. The browser maps refs to ids (`resolveEdit`), describes each
+  change (before → after) and shows a review card; nothing is written until the planner taps
+  Apply. Then the steps run in order through the repository under the planner's session (RLS
+  still enforces), stopping at the first failure; the whole proposal can be undone (updates
+  revert, creations are soft-deleted, deletions restored). Supported: wedding name/date/
+  budget, budget mode, create/update events, add/rename/re-budget categories, create/update
+  activities, add/update payments and links, soft delete. Not supported: photos, restoring
+  deleted items. Level budgets in auto mode are refused (they wouldn't count).
+- Tool calls travel as Claude's raw input: the function checks it and forwards it unchanged,
+  the browser parses it with the same function (parsing renames fields, so never re-parse a
+  parsed value). Each edit op accepts only its own value fields; a misplaced value is
+  rejected so Claude corrects it. A tool call that never passes, or that the browser can't
+  show, ends the answer with an error instead of failing silently.
+- Charts default to a donut (one figure); several figures or a split default to columns;
+  Claude sets a form only on request. A month range works with any grouping (payments made
+  in that period).
+- After Apply, the card and toast offer View: the page of the last change that has one
+  (activity for payments/links, parent page for deletions; none for wedding-wide changes).
+- History is plain text: charts and proposals are recorded in the assistant turn as notes
+  (`chartNote`, `editNote` with the card's status), so Claude knows what was applied.
 - Chats are in memory only (`ChatProvider` above the routes: kept while navigating, cleared on
   refresh, "New chat", or lock); no database changes.
 - The API key lives only in the `chat` Edge Function. The function checks the session and
