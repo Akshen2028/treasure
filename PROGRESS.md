@@ -10,6 +10,9 @@ _Last updated: 2026-10-18. Keep this short and current; it is not a changelog (P
 - Domain registered at Cloudflare (DNS only, proxy off; auto-renew should be on, expires
   2027-10-17). See `DEPLOYMENT.md`.
 - All 16 build steps merged (PRs #1–#16). `main` is clean.
+- Since then: a floating AI (sparkle) button on every screen after Welcome, planners only. It
+  copies the Markdown export and opens ChatGPT with the starter prompt, the same as "Open in
+  ChatGPT" on the export page (shared logic in `src/features/export/openAssistant.ts`).
 
 ## Verification (2026-10-17, at PR #15/#16)
 
