@@ -116,7 +116,7 @@ function AddCategoryForm({
         'Category'
       toast.success(`${name} added to ${event.name}`)
       onDone()
-      navigate(paths.category(event.id, result.category.id))
+      navigate(paths.category(event.id, result.category.id), { viewTransition: true })
     } catch (err) {
       setError(errorMessage(err))
     }

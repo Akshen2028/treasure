@@ -15,11 +15,12 @@ export function AppHeader() {
   return (
     <header className="sticky top-0 z-30 border-b border-border/60 bg-background/85 pt-safe backdrop-blur-md">
       <div className="mx-auto flex h-16 w-full max-w-3xl items-center justify-between px-4 sm:px-6">
-        <Link to={paths.home} className="rounded-full">
+        <Link viewTransition to={paths.home} className="rounded-full">
           <Wordmark />
         </Link>
         <nav aria-label="Primary" className="flex items-center gap-1">
           <Link
+            viewTransition
             to={paths.settings}
             className={cn(
               'mr-1 rounded-full border px-2.5 py-1 text-xs font-medium transition-colors',
@@ -34,12 +35,12 @@ export function AppHeader() {
             {isPlanner ? 'Planner' : 'Guest'}
           </Link>
           <Button asChild variant="ghost" size="icon">
-            <Link to={paths.search} aria-label="Search">
+            <Link viewTransition to={paths.search} aria-label="Search">
               <Search />
             </Link>
           </Button>
           <Button asChild variant="ghost" size="icon">
-            <Link to={paths.settings} aria-label="Settings">
+            <Link viewTransition to={paths.settings} aria-label="Settings">
               <Settings />
             </Link>
           </Button>

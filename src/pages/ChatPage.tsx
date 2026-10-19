@@ -2,6 +2,7 @@ import { ArrowUp, CircleAlert, LoaderCircle, RotateCcw, Square } from 'lucide-re
 import { type FormEvent, type KeyboardEvent, useLayoutEffect, useRef, useState } from 'react'
 import { useLocation } from 'react-router'
 
+import { isViewTransitionRecent } from '@/app/pageTransitions'
 import { paths } from '@/app/paths'
 import { useAccess } from '@/auth/AccessContext'
 import { PlannerOnly } from '@/components/auth/PlannerOnly'
@@ -28,6 +29,8 @@ function Conversation() {
   // iOS overlays the keyboard without resizing the page; fit the screen to what's visible.
   const visible = useVisualViewport(true)
   const [draft, setDraft] = useState('')
+  // Opening from a link already slides the screen up (see pageTransitions.ts).
+  const [slideIn] = useState(() => !isViewTransitionRecent())
   const logRef = useRef<HTMLDivElement>(null)
   const streaming = status === 'streaming'
   // Room for one more question and its answer.
@@ -79,7 +82,11 @@ function Conversation() {
 
   return (
     <div
-      className="fixed inset-x-0 top-0 flex h-dvh animate-in flex-col bg-background duration-300 ease-out fade-in slide-in-from-bottom-12 motion-reduce:animate-none"
+      className={cn(
+        'fixed inset-x-0 top-0 flex h-dvh flex-col bg-background',
+        slideIn &&
+          'animate-in duration-300 ease-out fade-in slide-in-from-bottom-12 motion-reduce:animate-none',
+      )}
       style={visible ? { top: visible.top, height: visible.height } : undefined}
     >
       <DetailHeader

@@ -146,7 +146,10 @@ function UnavailableCategory({ data, eventId, categoryId }: { data: WeddingData 
               </Button>
             ) : (
               <Button asChild variant="outline">
-                <Link to={event && !event.deletedAt ? paths.event(eventId) : paths.home}>
+                <Link
+                  viewTransition
+                  to={event && !event.deletedAt ? paths.event(eventId) : paths.home}
+                >
                   Go back
                 </Link>
               </Button>
@@ -231,6 +234,7 @@ function CategoryDetails({ data, eventId, categoryId }: { data: WeddingData } & 
               {otherEvents.map(({ event: other, eventCategoryId }) => (
                 <li key={eventCategoryId}>
                   <Link
+                    viewTransition
                     to={paths.category(other.id, eventCategoryId)}
                     className="inline-flex min-h-11 items-center rounded-full border bg-card px-4 text-sm font-medium transition-colors hover:bg-muted"
                   >
@@ -262,7 +266,7 @@ function CategoryDetails({ data, eventId, categoryId }: { data: WeddingData } & 
               confirmLabel="Remove category"
               destructive
               onConfirm={() => {
-                navigate(paths.event(event.id))
+                navigate(paths.event(event.id), { viewTransition: true })
                 deleteWithUndo({ kind: 'category', id: category.id }, definition.name)
               }}
             />

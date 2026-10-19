@@ -87,7 +87,7 @@ function ActivityForm({
         const created = await create.mutateAsync({ weddingId, eventCategoryId, ...parsed.value })
         toast.success(`${created.name} added`)
         onDone()
-        navigate(paths.activity(eventId, eventCategoryId, created.id))
+        navigate(paths.activity(eventId, eventCategoryId, created.id), { viewTransition: true })
       }
     } catch (error) {
       setServerError(errorMessage(error))

@@ -5,6 +5,7 @@ import { RouteError } from '@/components/feedback/RouteError'
 import { SplashScreen } from '@/components/feedback/SplashScreen'
 import { WelcomePage } from '@/pages/WelcomePage'
 
+import { trackPageTransitions } from './pageTransitions'
 import { RootLayout } from './RootLayout'
 
 /*
@@ -73,3 +74,5 @@ export const router = createBrowserRouter([
     ],
   },
 ])
+
+trackPageTransitions(router)

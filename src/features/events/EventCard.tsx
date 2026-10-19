@@ -14,6 +14,7 @@ export function EventCard({ event, summary }: { event: WeddingEvent; summary: Le
   const mediaUrl = useMediaUrl()
   return (
     <Link
+      viewTransition
       to={paths.event(event.id)}
       className="group flex flex-col overflow-hidden rounded-2xl border bg-card shadow-soft transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lifted focus-visible:-translate-y-0.5"
     >

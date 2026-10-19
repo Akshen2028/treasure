@@ -49,7 +49,9 @@ function PaymentsContent({
             description="It may have been deleted, or the link is incorrect."
             action={
               <Button asChild variant="outline">
-                <Link to={paths.home}>Back to dashboard</Link>
+                <Link viewTransition to={paths.home}>
+                  Back to dashboard
+                </Link>
               </Button>
             }
             className="my-8"
