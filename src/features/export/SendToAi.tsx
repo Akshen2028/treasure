@@ -3,22 +3,9 @@ import { useMemo } from 'react'
 import { toast } from 'sonner'
 
 import { Button } from '@/components/ui/button'
-import { canShareFile, copyTextNow } from '@/lib/download'
+import { canShareFile } from '@/lib/download'
 
-/**
- * Short opener sent in the link. It holds none of the wedding data (that would end up in
- * browser history and server logs, and long links get rejected), and it reads correctly
- * whether the assistant sends it straight away or only pre-fills the message box.
- */
-export const STARTER_PROMPT =
-  'I’m about to paste my wedding budget, exported from my planning app (all amounts are in ' +
-  'Canadian dollars). Once it’s pasted, please summarise where things stand, flag anything ' +
-  'over budget or overpaid, and list the payments still to make.'
-
-const ASSISTANTS = [
-  { name: 'ChatGPT', url: (q: string) => `https://chatgpt.com/?q=${encodeURIComponent(q)}` },
-  { name: 'Claude', url: (q: string) => `https://claude.ai/new?q=${encodeURIComponent(q)}` },
-] as const
+import { ASSISTANTS, openAssistant } from './openAssistant'
 
 type SendToAiProps = {
   text: string
@@ -34,19 +21,6 @@ export function SendToAi({ text, fileName, mimeType, title }: SendToAiProps) {
     [text, fileName, mimeType],
   )
   const shareable = useMemo(() => canShareFile(file), [file])
-
-  function open(name: string, url: string) {
-    // Copy first, while this page still has focus; then open the chat in a new tab.
-    const copied = copyTextNow(text)
-    window.open(url, '_blank', 'noopener,noreferrer')
-    if (copied) {
-      toast.success(`Export copied. In ${name}, paste it into the message box and send.`, {
-        duration: 8000,
-      })
-    } else {
-      toast.error('Couldn’t copy automatically. Use Download, then attach the file in the chat.')
-    }
-  }
 
   async function share() {
     try {
@@ -73,8 +47,8 @@ export function SendToAi({ text, fileName, mimeType, title }: SendToAiProps) {
         </p>
       </div>
       <div className="grid gap-2 sm:grid-cols-2">
-        {ASSISTANTS.map(({ name, url }) => (
-          <Button key={name} variant="outline" onClick={() => open(name, url(STARTER_PROMPT))}>
+        {ASSISTANTS.map(({ name }) => (
+          <Button key={name} variant="outline" onClick={() => openAssistant(name, text)}>
             <ExternalLink data-icon="inline-start" />
             Open in {name}
           </Button>
