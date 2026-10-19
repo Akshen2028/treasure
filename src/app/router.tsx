@@ -45,6 +45,10 @@ export const router = createBrowserRouter([
             lazy: async () => ({ Component: (await import('@/pages/AiExportPage')).AiExportPage }),
           },
           {
+            path: '/chat',
+            lazy: async () => ({ Component: (await import('@/pages/ChatPage')).ChatPage }),
+          },
+          {
             path: '/events/:eventId',
             lazy: async () => ({ Component: (await import('@/pages/EventPage')).EventPage }),
           },

@@ -17,7 +17,8 @@ const Toaster = ({ ...props }: ToasterProps) => {
       // Keep feedback brief so quick successive saves don't pile up over the page.
       visibleToasts={2}
       duration={3000}
-      mobileOffset={{ bottom: 'calc(env(safe-area-inset-bottom) + 16px)' }}
+      // Full-width on phones: sit above the floating assistant button so toasts never cover it.
+      mobileOffset={{ bottom: 'calc(env(safe-area-inset-bottom) + 5.5rem)' }}
       className="toaster group"
       icons={{
         success: <CircleCheckIcon className="size-4" />,

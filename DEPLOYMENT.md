@@ -69,6 +69,14 @@ and `SUPABASE_SECRET_KEY` (used by `test:db`, `planner:setup`, `seed:dev`). Temp
 - Authorization: RLS on every table (`is_planner()` for writes, public `select` of active rows),
   hard DELETE revoked, storage policies by wedding-id path prefix. Test with `npm run test:db`.
 - Storage: public bucket `wedding-media`, 10 MB, image types only (enforced by the bucket).
+- Edge Function `chat` (`supabase/functions/chat/`): the in-app AI assistant. Deploy with
+  `supabase functions deploy chat` **after user approval** (it is live for the real wedding
+  immediately); it does not ship with Vercel. Needs the secret `ANTHROPIC_API_KEY`
+  (Anthropic Console API key, separate from any Claude Pro plan), set by the user with
+  `supabase secrets set ANTHROPIC_API_KEY=...`, never in `.env*` or chat. The gateway JWT check
+  is off (`config.toml`); the function verifies the session and `is_planner` itself. Spend is
+  capped by the monthly limit in the Anthropic Console. Logs: Supabase dashboard → Edge
+  Functions → chat.
 - **Free-tier pause:** the project pauses after ~7 days without traffic; resume from the
   dashboard. The app shows an error state while paused.
 
