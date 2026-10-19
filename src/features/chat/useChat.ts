@@ -2,12 +2,51 @@ import { useCallback, useMemo, useRef, useState } from 'react'
 
 import type { WeddingData } from '@/data/queries'
 import { type ChatMessage } from '@/domain/chat'
+import { type ChartSpec, chartNote, type EditStatus, editNote } from '@/domain/chatTools'
+import { todayIso } from '@/domain/dates'
 import { buildWeddingExport, exportToMarkdown } from '@/domain/export'
 import { useMediaUrl } from '@/features/media/useMediaUrl'
 
+import type { ApplyResult, EditFocus } from './applyChatEdit'
 import { ChatError, streamChat } from './chatApi'
+import { type ResolvedEdit, resolveEdit } from './chatEdits'
+import { buildChatRefs, type RefTarget } from './chatRefs'
 
 export type ChatStatus = 'idle' | 'streaming'
+
+export type ChatAttachment =
+  | { type: 'chart'; spec: ChartSpec; targets: Map<string, RefTarget> }
+  | {
+      type: 'edit'
+      edit: ResolvedEdit
+      status: EditStatus
+      /** After applying: how to reverse it, and why it stopped early if it did. */
+      undo?: ApplyResult['undo']
+      error?: string
+      /** After applying: the page that shows the change. */
+      focus?: EditFocus
+    }
+
+/** A message plus any charts or proposals the assistant attached to it. */
+export type ChatTurn = ChatMessage & { attachments: ChatAttachment[] }
+
+/** What Claude reads back: the text, plus a note for each chart or proposal. */
+export function toApiMessages(turns: ChatTurn[]): ChatMessage[] {
+  return turns.map(({ role, content, attachments }) => ({
+    role,
+    content: [
+      content.trim(),
+      ...attachments.map((a) =>
+        a.type === 'chart' ? chartNote(a.spec) : editNote(a.edit.summary, a.status),
+      ),
+    ]
+      .filter(Boolean)
+      .join('\n\n'),
+  }))
+}
+
+const isEmptyAnswer = (turn: ChatTurn | undefined) =>
+  turn?.role === 'assistant' && !turn.content.trim() && turn.attachments.length === 0
 
 /**
  * One conversation with the assistant, kept in memory only (a refresh or "New chat" clears
@@ -15,7 +54,7 @@ export type ChatStatus = 'idle' | 'streaming'
  */
 export function useChat(data: WeddingData | undefined) {
   const mediaUrl = useMediaUrl()
-  const [messages, setMessages] = useState<ChatMessage[]>([])
+  const [messages, setMessages] = useState<ChatTurn[]>([])
   const [status, setStatus] = useState<ChatStatus>('idle')
   /** The last failure, with the question to offer for a retry. */
   const [error, setError] = useState<{ message: string; question: string } | null>(null)
@@ -26,8 +65,8 @@ export function useChat(data: WeddingData | undefined) {
       const content = question.trim()
       if (!content || !data || abortRef.current) return
 
-      const asked: ChatMessage[] = [...messages, { role: 'user', content }]
-      setMessages([...asked, { role: 'assistant', content: '' }])
+      const asked: ChatTurn[] = [...messages, { role: 'user', content, attachments: [] }]
+      setMessages([...asked, { role: 'assistant', content: '', attachments: [] }])
       setError(null)
       setStatus('streaming')
 
@@ -37,21 +76,33 @@ export function useChat(data: WeddingData | undefined) {
         mediaUrl,
         generatedAt: new Date().toISOString(),
       })
+      const { refs, targets } = buildChatRefs(data.active)
+      const updateAnswer = (update: (turn: ChatTurn) => ChatTurn) =>
+        setMessages((current) => {
+          const last = current.at(-1)
+          if (!last || last.role !== 'assistant') return current
+          return [...current.slice(0, -1), update(last)]
+        })
+      const attach = (attachment: ChatAttachment) =>
+        updateAnswer((turn) => ({ ...turn, attachments: [...turn.attachments, attachment] }))
+
       try {
         await streamChat(
           {
             weddingId: data.snapshot.wedding.id,
             exportText: exportToMarkdown(exported),
-            messages: asked,
+            messages: toApiMessages(asked),
+            refs,
+            today: todayIso(),
           },
           {
             signal: controller.signal,
-            onText: (text) =>
-              setMessages((current) => {
-                const last = current.at(-1)
-                if (!last || last.role !== 'assistant') return current
-                return [...current.slice(0, -1), { ...last, content: last.content + text }]
-              }),
+            onText: (text) => updateAnswer((turn) => ({ ...turn, content: turn.content + text })),
+            onChart: (spec) => attach({ type: 'chart', spec, targets }),
+            onEdit: (proposal) => {
+              const edit = resolveEdit(proposal, data.active, targets)
+              attach({ type: 'edit', edit, status: edit.problems.length ? 'invalid' : 'pending' })
+            },
           },
         )
       } catch (caught) {
@@ -65,15 +116,34 @@ export function useChat(data: WeddingData | undefined) {
       } finally {
         // Keep a partial answer; with no answer at all, take the question back out too, so
         // turns keep alternating and it can be asked again.
-        setMessages((current) => {
-          const last = current.at(-1)
-          return last?.role === 'assistant' && !last.content.trim() ? current.slice(0, -2) : current
-        })
+        setMessages((current) => (isEmptyAnswer(current.at(-1)) ? current.slice(0, -2) : current))
         abortRef.current = null
         setStatus('idle')
       }
     },
     [data, mediaUrl, messages],
+  )
+
+  /** Records what happened to a proposal (applied, dismissed, undone…). */
+  const updateEdit = useCallback(
+    (
+      messageIndex: number,
+      attachmentIndex: number,
+      patch: Partial<Extract<ChatAttachment, { type: 'edit' }>>,
+    ) =>
+      setMessages((current) =>
+        current.map((turn, i) =>
+          i !== messageIndex
+            ? turn
+            : {
+                ...turn,
+                attachments: turn.attachments.map((a, j) =>
+                  j === attachmentIndex && a.type === 'edit' ? { ...a, ...patch } : a,
+                ),
+              },
+        ),
+      ),
+    [],
   )
 
   const stop = useCallback(() => abortRef.current?.abort(), [])
@@ -85,7 +155,7 @@ export function useChat(data: WeddingData | undefined) {
   }, [])
 
   return useMemo(
-    () => ({ messages, status, error, send, stop, reset }),
-    [messages, status, error, send, stop, reset],
+    () => ({ messages, status, error, send, stop, reset, updateEdit }),
+    [messages, status, error, send, stop, reset, updateEdit],
   )
 }

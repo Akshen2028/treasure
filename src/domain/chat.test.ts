@@ -30,7 +30,17 @@ describe('validateChatRequest', () => {
           { role: 'assistant', content: 'Hello' },
           { role: 'user', content: 'Total?' },
         ],
+        refs: [],
+        today: null,
       },
+    })
+  })
+
+  it('accepts references and today’s date', () => {
+    const refs = [{ ref: 'E1', kind: 'event', name: 'Haldi' }]
+    expect(validateChatRequest({ ...valid, refs, today: '2026-10-19' })).toMatchObject({
+      ok: true,
+      value: { refs, today: '2026-10-19' },
     })
   })
 
@@ -38,6 +48,8 @@ describe('validateChatRequest', () => {
     ['not an object', null],
     ['an array', []],
     ['a bad wedding id', { ...valid, weddingId: 'main' }],
+    ['malformed references', { ...valid, refs: [{ ref: 'E1', kind: 'event' }] }],
+    ['a bad date', { ...valid, today: '19/10/2026' }],
     ['a missing export', { ...valid, exportText: '  ' }],
     ['an oversized export', { ...valid, exportText: 'x'.repeat(CHAT_LIMITS.exportChars + 1) }],
     ['no messages', { ...valid, messages: [] }],

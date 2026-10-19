@@ -15,6 +15,9 @@ const sliceColor = (row: AllocationRow) =>
 
 const shareText = (row: AllocationRow) => (row.share === null ? '—' : formatPercent(row.share))
 
+type FormatValue = (value: number, options?: { compact?: boolean }) => string
+const formatMoney: FormatValue = (cents, options) => formatCad(cents, options)
+
 /** The ring itself, with whatever belongs in the middle. */
 function Donut({
   rows,
@@ -78,13 +81,25 @@ type DonutCardProps = {
   /** Every item on its own, for the full breakdown. */
   ungrouped: Allocation
   emptyText: string
+  /** Overrides "Budget"/"Paid", for charts of other figures. */
+  valueLabel?: string
+  /** Defaults to CAD; counts pass their own. */
+  formatValue?: FormatValue
 }
 
 /** Dashboard card: donut + legend. Tapping it opens the full, ungrouped breakdown. */
-export function DonutCard({ title, measure, allocation, ungrouped, emptyText }: DonutCardProps) {
+export function DonutCard({
+  title,
+  measure,
+  allocation,
+  ungrouped,
+  emptyText,
+  valueLabel,
+  formatValue = formatMoney,
+}: DonutCardProps) {
   const [open, setOpen] = useState(false)
   const { rows, totalCents } = allocation
-  const measureLabel = measure === 'budget' ? 'Budget' : 'Paid'
+  const measureLabel = valueLabel ?? (measure === 'budget' ? 'Budget' : 'Paid')
 
   if (totalCents === 0) {
     return (
@@ -123,7 +138,7 @@ export function DonutCard({ title, measure, allocation, ungrouped, emptyText }: 
                 <>
                   {/* A quiet label: compact amount, kept well inside the ring at every card width. */}
                   <span className="text-xs font-semibold @xs:text-sm">
-                    {formatCad(totalCents, { compact: true })}
+                    {formatValue(totalCents, { compact: true })}
                   </span>
                   <span className="text-[0.6rem] leading-tight text-muted-foreground @xs:text-[0.65rem]">
                     {measureLabel}
@@ -163,8 +178,9 @@ export function DonutCard({ title, measure, allocation, ungrouped, emptyText }: 
         open={open}
         onOpenChange={setOpen}
         title={title}
-        measure={measure}
+        measureLabel={measureLabel}
         allocation={ungrouped}
+        formatValue={formatValue}
       />
     </figure>
   )
@@ -175,19 +191,20 @@ function BreakdownSheet({
   open,
   onOpenChange,
   title,
-  measure,
+  measureLabel,
   allocation,
+  formatValue,
 }: {
   open: boolean
   onOpenChange: (open: boolean) => void
   title: string
-  measure: Measure
+  measureLabel: string
   allocation: Allocation
+  formatValue: FormatValue
 }) {
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const { rows, totalCents } = allocation
   const selected = rows.find((r) => r.id === selectedId) ?? null
-  const measureLabel = measure === 'budget' ? 'Budget' : 'Paid'
   const toggle = (id: string) => setSelectedId((current) => (current === id ? null : id))
 
   return (
@@ -212,12 +229,12 @@ function BreakdownSheet({
                   <span className="line-clamp-2 text-sm leading-tight font-medium">
                     {selected.name}
                   </span>
-                  <span className="text-lg font-semibold">{formatCad(selected.valueCents)}</span>
+                  <span className="text-lg font-semibold">{formatValue(selected.valueCents)}</span>
                   <span className="text-xs text-muted-foreground">{shareText(selected)}</span>
                 </>
               ) : (
                 <>
-                  <span className="text-lg font-semibold">{formatCad(totalCents)}</span>
+                  <span className="text-lg font-semibold">{formatValue(totalCents)}</span>
                   <span className="text-xs text-muted-foreground">
                     Total {measureLabel.toLowerCase()}
                   </span>
@@ -254,7 +271,7 @@ function BreakdownSheet({
                       Over budget
                     </span>
                   )}
-                  <span className="shrink-0 tabular-nums">{formatCad(row.valueCents)}</span>
+                  <span className="shrink-0 tabular-nums">{formatValue(row.valueCents)}</span>
                   <span className="w-10 shrink-0 text-right text-muted-foreground tabular-nums">
                     {shareText(row)}
                   </span>
@@ -264,7 +281,7 @@ function BreakdownSheet({
           })}
           <li className="flex min-h-12 items-center gap-3 border-t bg-muted/40 px-4 py-2 text-sm font-medium">
             <span className="flex-1">Total</span>
-            <span className="tabular-nums">{formatCad(totalCents)}</span>
+            <span className="tabular-nums">{formatValue(totalCents)}</span>
             <span className="w-10 text-right text-muted-foreground">100%</span>
           </li>
         </ul>
