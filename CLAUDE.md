@@ -79,7 +79,8 @@ Auth, Storage). Node 24 via nvm (`.nvmrc`); prefix shell commands with
 ## Git workflow
 
 - One branch per change (`step/NN-name` or a short descriptive name), from up-to-date `main`.
-- Keep changes **uncommitted until the user gives the green light**; then commit, push, open a
+- Keep changes **uncommitted until the user gives the green light**; then commit, push with
+  `git push -u origin <branch>` (sets upstream; repo also has `push.autoSetupRemote=true`), open a
   PR with `gh` (short description), merge, and update `main` (`git pull --ff-only origin main`).
 - The user says "master"; the branch is `main`.
 - The repo is in iCloud Documents. Before checks, look for conflict copies:
