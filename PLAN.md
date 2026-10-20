@@ -235,7 +235,13 @@ phase is its own branch and PR; every migration gets a dry run and user approval
 ### Steps
 
 **Phase 1: Visibility and guest access (DB + RLS).** Safe to ship while `main` is the only
-wedding.
+wedding. 🟡 Shipped as two PRs so guests never break: **A** (migration
+`20261019120000_guest_access.sql`, `media` function, app reads via `guest_view`, steps 1, 3, 4,
+6 and the additive half of 2 and 5) then **B** after A is live (revoke anon table reads,
+planner-only select policies, private bucket, test updates). Percentage figures are parts per
+million of the wedding total (`src/domain/guestFigures.ts`, mirrored by `budget_share()` and
+`guest_view()`); over-budget flags come from exact amounts. In percentage mode guests also
+don't see actual costs or payment notes.
 
 1. Migration: `weddings.visibility` (`public` | `private`, default `private`), `share_key`
    (random, server-generated), `guest_amounts` (`amounts` | `percentages`), `plan`

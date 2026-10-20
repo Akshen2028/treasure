@@ -14,10 +14,44 @@ function StatTile({ label, value, hint }: { label: string; value: string; hint?:
   )
 }
 
+/** Guests in percentage mode: how much of the budget is paid, without any amounts. */
+function SharesOverview({ budget }: { budget: BudgetIndex }) {
+  const { budgetCents, paidCents, progress } = budget.wedding
+  return (
+    <section
+      aria-labelledby="overview-heading"
+      className="rounded-2xl border bg-card p-5 shadow-soft sm:p-6"
+    >
+      <h2
+        id="overview-heading"
+        className="font-sans text-xs font-medium tracking-widest text-muted-foreground uppercase"
+      >
+        Budget paid
+      </h2>
+      <p className="mt-1 text-5xl font-semibold tracking-tight">
+        {progress.ratio === null ? '—' : formatPercent(progress.ratio)}
+      </p>
+      <p className="mt-1 text-sm text-muted-foreground">
+        The couple shares percentages of their total budget, not amounts.
+      </p>
+      <div className="mt-5 flex flex-col gap-2">
+        <SpendProgress budgetCents={budgetCents} paidCents={paidCents} progress={progress} />
+        {progress.overBudget && (
+          <p className="inline-flex items-center gap-1.5 text-sm font-medium text-destructive">
+            <TriangleAlert className="size-4" aria-hidden="true" />
+            Over budget
+          </p>
+        )}
+      </div>
+    </section>
+  )
+}
+
 /** The wedding-wide budget at a glance: total budget, paid, how much is used, and a meter. */
-export function WeddingOverview({ budget }: { budget: BudgetIndex }) {
+export function WeddingOverview({ budget, shares }: { budget: BudgetIndex; shares: boolean }) {
   const { budgetCents, paidCents, childBudgetsCents, progress } = budget.wedding
   const manual = budget.mode === 'manual'
+  if (shares) return <SharesOverview budget={budget} />
 
   return (
     <section

@@ -28,6 +28,8 @@ function PaymentsContent({
   activityId,
 }: { data: WeddingData } & Params) {
   const { isPlanner } = useAccess()
+  // Guests in percentage mode see when each payment was made, not how much.
+  const shares = data.showsShares
   const deleteWithUndo = useDeleteWithUndo()
   const [adding, setAdding] = useState(false)
   const [editing, setEditing] = useState<Payment | null>(null)
@@ -125,7 +127,7 @@ function PaymentsContent({
                 >
                   <div className="min-w-0 flex-1">
                     <p className="text-lg font-medium tabular-nums">
-                      {formatCad(payment.amountCents, { cents: 'always' })}
+                      {shares ? 'Paid' : formatCad(payment.amountCents, { cents: 'always' })}
                     </p>
                     <p className="truncate text-sm text-muted-foreground">
                       {formatDate(payment.paidOn)}

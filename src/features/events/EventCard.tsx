@@ -7,7 +7,7 @@ import type { LevelSummary } from '@/domain/budget'
 import { formatDate } from '@/domain/dates'
 import type { WeddingEvent } from '@/domain/types'
 import { SafeImage } from '@/features/media/SafeImage'
-import { useMediaUrl } from '@/features/media/useMediaUrl'
+import { useMediaUrl } from '@/data/queries'
 
 /** Dashboard card: name, date, budget, paid and progress. */
 export function EventCard({ event, summary }: { event: WeddingEvent; summary: LevelSummary }) {

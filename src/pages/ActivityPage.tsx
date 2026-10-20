@@ -14,6 +14,7 @@ import { Button } from '@/components/ui/button'
 import type { WeddingData } from '@/data/queries'
 import { useDeleteWithUndo, useRestoreWithToast } from '@/data/softDelete'
 import type { ActivitySummary } from '@/domain/budget'
+import { useAmountFormat } from '@/components/budget/useAmountFormat'
 import { formatCad } from '@/domain/money'
 import { ActivityFormSheet } from '@/features/activities/ActivityFormSheet'
 import { imagesForActivity, linksForActivity } from '@/features/activities/activityLogic'
@@ -25,9 +26,10 @@ import { PhotoGallery } from '@/features/media/PhotoGallery'
 
 type Params = { eventId: string; categoryId: string; activityId: string }
 
-function paymentsSummary(summary: ActivitySummary): string {
+function paymentsSummary(summary: ActivitySummary, shares: boolean): string {
   if (summary.paymentCount === 0) return 'No payments recorded yet'
   const count = `${summary.paymentCount} payment${summary.paymentCount === 1 ? '' : 's'}`
+  if (shares) return count
   const outstanding =
     summary.outstandingCents !== null && summary.outstandingCents > 0
       ? ` · ${formatCad(summary.outstandingCents)} still to pay`
@@ -37,6 +39,7 @@ function paymentsSummary(summary: ActivitySummary): string {
 
 /** The clearly clickable Payments row leading to the payments screen. */
 function PaymentsRow({ to, summary }: { to: string; summary: ActivitySummary }) {
+  const { shares } = useAmountFormat()
   return (
     <Link
       viewTransition
@@ -49,7 +52,7 @@ function PaymentsRow({ to, summary }: { to: string; summary: ActivitySummary }) 
       <span className="min-w-0 flex-1">
         <span className="block font-heading text-xl">Payments</span>
         <span className="block truncate text-sm text-muted-foreground">
-          {paymentsSummary(summary)}
+          {paymentsSummary(summary, shares)}
         </span>
       </span>
       <ChevronRight

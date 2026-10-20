@@ -1,16 +1,15 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { useMemo } from 'react'
+import { useCallback, useMemo } from 'react'
 
 import { useAccess } from '@/auth/AccessContext'
 import { type BudgetIndex, computeBudgetIndex } from '@/domain/budget'
+import { budgetIndexFromFigures } from '@/domain/guestFigures'
 import { type ActiveSnapshot, selectActive } from '@/domain/hierarchy'
 import type { WeddingSnapshot } from '@/domain/types'
 import { env } from '@/lib/env'
 
 import { useRepository } from './RepositoryContext'
-import type { WeddingRepository } from './repository'
-
-export type Audience = 'planner' | 'guest'
+import type { Audience, WeddingRepository } from './repository'
 
 /**
  * Planners and guests receive different snapshots (planners also get soft-deleted records),
@@ -21,18 +20,48 @@ export const weddingKeys = {
   snapshot: (slug: string, audience: Audience) => ['wedding', slug, audience] as const,
 }
 
-export function useSnapshotKey() {
+/**
+ * Signed media URLs live outside `weddingKeys.all`, so saving an edit (which refetches the
+ * wedding) doesn't re-sign every photo and make them all reload.
+ */
+const mediaKey = (slug: string, audience: Audience, paths: string[]) =>
+  ['media', slug, audience, paths] as const
+
+/** URLs signed straight after an upload, used until the full list is re-signed. */
+const freshMediaKey = (slug: string, audience: Audience) => ['media-fresh', slug, audience] as const
+
+/** Which wedding is shown, and the share key that opens it if it is private. */
+function useWeddingTarget() {
   const { isPlanner } = useAccess()
-  return weddingKeys.snapshot(env.weddingSlug, isPlanner ? 'planner' : 'guest')
+  const audience: Audience = isPlanner ? 'planner' : 'guest'
+  // One wedding for now; share links arrive with per-wedding routes (PLAN.md §13, phase 3).
+  return { slug: env.weddingSlug, shareKey: null, audience }
+}
+
+export function useSnapshotKey() {
+  const { slug, audience } = useWeddingTarget()
+  return weddingKeys.snapshot(slug, audience)
 }
 
 export function useWeddingSnapshot() {
   const repository = useRepository()
-  const queryKey = useSnapshotKey()
+  const { slug, shareKey, audience } = useWeddingTarget()
   return useQuery({
-    queryKey,
-    queryFn: () => repository.loadSnapshot(env.weddingSlug),
+    queryKey: weddingKeys.snapshot(slug, audience),
+    queryFn: () =>
+      audience === 'planner'
+        ? repository.loadSnapshot(slug)
+        : repository.loadGuestView(slug, shareKey),
   })
+}
+
+/**
+ * True when this viewer sees shares of the total budget instead of amounts (guests of a
+ * wedding in percentage mode). Every `…Cents` figure in the budget index is then a share;
+ * format with `formatShare`.
+ */
+export function useShowsShares(): boolean {
+  return useWeddingSnapshot().data?.guestFigures != null
 }
 
 export type WeddingData = {
@@ -40,8 +69,10 @@ export type WeddingData = {
   snapshot: WeddingSnapshot
   /** Only records that are active and have active ancestors. */
   active: ActiveSnapshot
-  /** Budget, paid and progress for every level. */
+  /** Budget, paid and progress for every level (shares, not cents, when `showsShares`). */
   budget: BudgetIndex
+  /** Guests of a wedding in percentage mode: figures are shares of the total budget. */
+  showsShares: boolean
 }
 
 /** The wedding plus everything derived from it, recomputed only when the data changes. */
@@ -52,11 +83,86 @@ export function useWeddingData() {
       query.data && {
         snapshot: query.data,
         active: selectActive(query.data),
-        budget: computeBudgetIndex(query.data),
+        budget: query.data.guestFigures
+          ? budgetIndexFromFigures(query.data, query.data.guestFigures)
+          : computeBudgetIndex(query.data),
+        showsShares: query.data.guestFigures != null,
       },
     [query.data],
   )
   return { ...query, data }
+}
+
+/** Every stored media path in a snapshot, sorted so the list is a stable cache key. */
+function mediaPaths(snapshot: WeddingSnapshot): string[] {
+  const paths = new Set<string>()
+  for (const e of snapshot.events) if (e.coverImagePath) paths.add(e.coverImagePath)
+  for (const i of snapshot.activityImages) {
+    paths.add(i.storagePath)
+    if (i.thumbnailPath) paths.add(i.thumbnailPath)
+  }
+  return [...paths].sort()
+}
+
+/** Signed URLs last an hour; refresh well before they expire. */
+const MEDIA_REFRESH_MS = 45 * 60 * 1000
+
+/**
+ * Resolves stored media paths to signed URLs. Returns undefined while the URLs load (or
+ * if they couldn't), so images simply wait instead of breaking.
+ */
+export function useMediaUrl(): (path: string) => string | undefined {
+  const repository = useRepository()
+  const { slug, shareKey, audience } = useWeddingTarget()
+  const snapshot = useWeddingSnapshot().data
+  const paths = useMemo(() => (snapshot ? mediaPaths(snapshot) : []), [snapshot])
+  const { data: urls } = useQuery({
+    queryKey: mediaKey(slug, audience, paths),
+    queryFn: () => repository.signMedia({ audience, slug, shareKey, paths }),
+    enabled: paths.length > 0,
+    staleTime: MEDIA_REFRESH_MS,
+    refetchInterval: MEDIA_REFRESH_MS,
+    // Keep showing the current photos while a changed list of paths is signed.
+    placeholderData: (previous) => previous,
+  })
+  const { data: fresh } = useQuery<Record<string, string>>({
+    queryKey: freshMediaKey(slug, audience),
+    queryFn: () => ({}),
+    enabled: false,
+    staleTime: Infinity,
+  })
+  return useCallback((path: string) => urls?.[path] ?? fresh?.[path], [urls, fresh])
+}
+
+/** Resolves once the image has downloaded and decoded (or failed), so it can show at once. */
+function preload(url: string): Promise<void> {
+  const image = new Image()
+  image.src = url
+  return image.decode().catch(() => {})
+}
+
+/**
+ * Signs newly uploaded media and waits for `show` paths to load, so a new photo appears
+ * complete instead of as an empty tile while its URL is fetched. Failures are ignored: the
+ * regular re-signing picks the photo up moments later.
+ */
+export function usePrepareNewMedia() {
+  const repository = useRepository()
+  const queryClient = useQueryClient()
+  const { slug, shareKey, audience } = useWeddingTarget()
+  return useCallback(
+    async (paths: string[], show: string[]) => {
+      const urls = await repository
+        .signMedia({ audience, slug, shareKey, paths })
+        .catch(() => ({}) as Record<string, string>)
+      queryClient.setQueryData<Record<string, string>>(freshMediaKey(slug, audience), (prev) => ({
+        ...prev,
+        ...urls,
+      }))
+      await Promise.all(show.flatMap((path) => (urls[path] ? [preload(urls[path])] : [])))
+    },
+    [repository, queryClient, slug, shareKey, audience],
+  )
 }
 
 type SnapshotMutationOptions<TVariables, TResult> = {

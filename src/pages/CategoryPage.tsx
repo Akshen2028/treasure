@@ -13,7 +13,7 @@ import { ItemActionsMenu } from '@/components/layout/ItemActionsMenu'
 import { PageContainer } from '@/components/layout/PageContainer'
 import { Button } from '@/components/ui/button'
 import type { WeddingData } from '@/data/queries'
-import { formatCad } from '@/domain/money'
+import { useAmountFormat } from '@/components/budget/useAmountFormat'
 import { useDeleteWithUndo, useRestoreWithToast } from '@/data/softDelete'
 import { ActivityCard } from '@/features/activities/ActivityCard'
 import { ActivityFormSheet } from '@/features/activities/ActivityFormSheet'
@@ -164,6 +164,7 @@ function UnavailableCategory({ data, eventId, categoryId }: { data: WeddingData 
 
 function CategoryDetails({ data, eventId, categoryId }: { data: WeddingData } & Params) {
   const { isPlanner } = useAccess()
+  const { shares, format } = useAmountFormat()
   const navigate = useNavigate()
   const deleteWithUndo = useDeleteWithUndo()
   const [editing, setEditing] = useState(false)
@@ -216,7 +217,7 @@ function CategoryDetails({ data, eventId, categoryId }: { data: WeddingData } & 
           <BudgetFigures summary={summary} size="lg" />
           <p className="mt-3 text-xs text-muted-foreground">
             {manual
-              ? `Budget set manually for this category. Its activities add up to ${formatCad(summary.childBudgetsCents)}.`
+              ? `Budget set manually for this category. Its activities add up to ${format(summary.childBudgetsCents)}${shares ? ' of the total' : ''}.`
               : 'Budget calculated from this category’s activities.'}
           </p>
         </section>

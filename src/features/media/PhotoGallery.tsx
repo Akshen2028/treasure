@@ -11,7 +11,7 @@ import { Lightbox, type LightboxImage } from './Lightbox'
 import { useAddActivityImage } from './mutations'
 import { ImagePrepError, prepareImage } from './prepareImage'
 import { SafeImage } from './SafeImage'
-import { useMediaUrl } from './useMediaUrl'
+import { useMediaUrl } from '@/data/queries'
 
 type PhotoGalleryProps = {
   images: ActivityImage[]
@@ -21,7 +21,8 @@ type PhotoGalleryProps = {
   activityId: Id
 }
 
-type Progress = { done: number; total: number }
+/** `added` counts successful uploads; `baseline` is how many photos there were before. */
+type Progress = { done: number; total: number; added: number; baseline: number }
 
 /** Thumbnail grid with full-screen viewing; planners can add and remove photos. */
 export function PhotoGallery({
@@ -49,7 +50,8 @@ export function PhotoGallery({
     event.target.value = '' // allow picking the same file again
     if (files.length === 0) return
 
-    setProgress({ done: 0, total: files.length })
+    const baseline = images.length
+    setProgress({ done: 0, total: files.length, added: 0, baseline })
     let added = 0
     const nextSort = images.reduce((max, image) => Math.max(max, image.sortOrder), 0) + 1
     // One at a time keeps memory low on phones and gives clear progress.
@@ -66,7 +68,7 @@ export function PhotoGallery({
       } catch (error) {
         toast.error(error instanceof ImagePrepError ? error.message : errorMessage(error))
       }
-      setProgress({ done: i + 1, total: files.length })
+      setProgress({ done: i + 1, total: files.length, added, baseline })
     }
     setProgress(null)
     if (added > 0) toast.success(added === 1 ? 'Photo added' : `${added} photos added`)
@@ -133,7 +135,8 @@ export function PhotoGallery({
               </button>
             </li>
           ))}
-          {progress && (
+          {/* Hidden as soon as the photo being uploaded appears, before the save fully settles. */}
+          {progress && images.length <= progress.baseline + progress.added && (
             <li
               aria-hidden="true"
               className="grid aspect-square animate-pulse place-items-center rounded-xl bg-muted text-muted-foreground"

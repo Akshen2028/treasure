@@ -10,7 +10,7 @@ import { errorMessage } from '@/lib/errors'
 import { useSetEventCover } from './mutations'
 import { ImagePrepError, prepareImage } from './prepareImage'
 import { SafeImage } from './SafeImage'
-import { useMediaUrl } from './useMediaUrl'
+import { useMediaUrl } from '@/data/queries'
 
 /** The event page's cover photo; planners can add, change or remove it. */
 export function EventCover({ event, isPlanner }: { event: WeddingEvent; isPlanner: boolean }) {

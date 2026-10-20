@@ -73,8 +73,11 @@ export type WeddingExport = {
 }
 
 type BuildOptions = {
-  /** Turns a stored media path into a public URL. */
-  mediaUrl: (path: string) => string
+  /**
+   * Turns a stored media path into a URL (signed, so it expires after about an hour), or
+   * undefined if none is available; such photos are left out.
+   */
+  mediaUrl: (path: string) => string | undefined
   generatedAt: string
 }
 
@@ -122,7 +125,7 @@ export function buildWeddingExport(
                 .map((l) => ({ label: l.label, url: l.url })),
               photos: childrenOf(active.activityImages, 'activityId', activity.id)
                 .sort(byOrder)
-                .map((i) => options.mediaUrl(i.storagePath)),
+                .flatMap((i) => options.mediaUrl(i.storagePath) ?? []),
             }
           })
         return {
@@ -137,7 +140,7 @@ export function buildWeddingExport(
       date: event.eventDate,
       location: event.location,
       description: event.description,
-      coverPhoto: event.coverImagePath ? options.mediaUrl(event.coverImagePath) : null,
+      coverPhoto: event.coverImagePath ? (options.mediaUrl(event.coverImagePath) ?? null) : null,
       budget: dollars(eventSummary.budgetCents),
       paid: dollars(eventSummary.paidCents),
       categories,

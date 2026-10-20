@@ -6,7 +6,8 @@ import { Button } from '@/components/ui/button'
 
 import { SafeImage } from './SafeImage'
 
-export type LightboxImage = { id: string; url: string; alt: string }
+/** `url` is undefined while its signed URL loads. */
+export type LightboxImage = { id: string; url: string | undefined; alt: string }
 
 type LightboxProps = {
   images: LightboxImage[]

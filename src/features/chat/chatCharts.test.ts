@@ -33,6 +33,7 @@ function setup(snapshot: WeddingSnapshot = wedding()) {
     snapshot,
     active: selectActive(snapshot),
     budget: computeBudgetIndex(snapshot),
+    showsShares: false,
   }
   const { targets, refs } = buildChatRefs(data.active)
   const ref = (name: string) => refs.find((r) => r.name.startsWith(name))!.ref

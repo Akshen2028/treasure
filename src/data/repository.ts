@@ -23,8 +23,14 @@ export type SoftDeletableKind =
   'definition' | 'event' | 'category' | 'activity' | 'payment' | 'link' | 'image'
 
 export type WeddingPatch = Partial<
-  Pick<Wedding, 'name' | 'weddingDate' | 'budgetMode' | 'manualBudgetCents'>
+  Pick<
+    Wedding,
+    'name' | 'weddingDate' | 'budgetMode' | 'manualBudgetCents' | 'visibility' | 'guestAmounts'
+  >
 >
+
+/** Who is looking: planners read the tables; guests get the filtered guest view. */
+export type Audience = 'planner' | 'guest'
 
 export type NewEvent = Pick<WeddingEvent, 'weddingId' | 'name'> &
   Partial<
@@ -100,10 +106,16 @@ export class RepositoryError extends Error {
 
 export interface WeddingRepository {
   /**
-   * Loads everything about a wedding. Planners also receive soft-deleted records
-   * (for Recently Deleted); guests receive active records only.
+   * Loads everything about a wedding the caller plans, including soft-deleted records
+   * (for Recently Deleted).
    */
   loadSnapshot(slug: string): Promise<WeddingSnapshot>
+  /**
+   * What a guest may see: active records only, and in percentage mode no amounts (figures
+   * come in `guestFigures` instead). A private wedding needs its share key; without it
+   * this fails with `WeddingNotFoundError`, exactly as if the wedding didn't exist.
+   */
+  loadGuestView(slug: string, shareKey: string | null): Promise<WeddingSnapshot>
 
   updateWedding(id: Id, patch: WeddingPatch): Promise<Wedding>
 
@@ -141,8 +153,20 @@ export interface WeddingRepository {
     eventId: Id
     image: PreparedImage | null
   }): Promise<WeddingEvent>
-  /** Public URL for a stored media path. */
-  mediaUrl(path: string): string
+  /**
+   * Short-lived signed URLs (about an hour) for stored media paths, keyed by path. Photos
+   * are private: planners sign the given paths through their own session; guests get URLs
+   * for every photo the guest view shows (`paths` is ignored), after the same visibility check.
+   */
+  signMedia(input: {
+    audience: Audience
+    slug: string
+    shareKey: string | null
+    paths: string[]
+  }): Promise<Record<string, string>>
+
+  /** Issues a new share key; links with the old one stop working. Planners only. */
+  resetShareKey(weddingId: Id): Promise<string>
 
   /** Marks a record deleted. Its children are hidden, not modified. */
   softDelete(kind: SoftDeletableKind, id: Id): Promise<void>

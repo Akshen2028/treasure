@@ -8,11 +8,13 @@ import type {
   ActivityLink,
   CategoryDefinition,
   EventCategory,
+  GuestFigures,
   Payment,
   Wedding,
   WeddingEvent,
+  WeddingSnapshot,
 } from '@/domain/types'
-import type { Database } from '@/lib/database.types'
+import type { Database, Json } from '@/lib/database.types'
 
 import type {
   ActivityLinkPatch,
@@ -43,12 +45,17 @@ const timestamps = (row: { created_at: string; updated_at: string }) => ({
 // Rows → domain
 // ---------------------------------------------------------------------------
 
-export const toWedding = (r: Row<'weddings'>): Wedding => ({
+/** The wedding columns everyone may see (never share_key or plan). */
+export type PublicWeddingRow = Omit<Row<'weddings'>, 'share_key' | 'plan'>
+
+export const toWedding = (r: PublicWeddingRow): Wedding => ({
   id: r.id,
   name: r.name,
   weddingDate: r.wedding_date,
   budgetMode: r.budget_mode,
   manualBudgetCents: r.manual_budget_cents,
+  visibility: r.visibility,
+  guestAmounts: r.guest_amounts,
   ...timestamps(r),
 })
 
@@ -134,6 +141,35 @@ export const toPayment = (r: Row<'payments'>): Payment => ({
   ...timestamps(r),
 })
 
+/** The document returned by the `guest_view()` database function. */
+export type GuestViewDocument = {
+  wedding: PublicWeddingRow
+  category_definitions: Row<'category_definitions'>[]
+  events: Row<'events'>[]
+  event_categories: Row<'event_categories'>[]
+  activities: Row<'activities'>[]
+  activity_images: Row<'activity_images'>[]
+  activity_links: Row<'activity_links'>[]
+  payments: Row<'payments'>[]
+  figures: GuestFigures | null
+}
+
+/** A guest view as a snapshot; the database has already filtered and blanked it. */
+export function fromGuestView(json: Json): WeddingSnapshot {
+  const doc = json as unknown as GuestViewDocument
+  return {
+    wedding: toWedding(doc.wedding),
+    categoryDefinitions: doc.category_definitions.map(toCategoryDefinition),
+    events: doc.events.map(toEvent),
+    eventCategories: doc.event_categories.map(toEventCategory),
+    activities: doc.activities.map(toActivity),
+    activityImages: doc.activity_images.map(toActivityImage),
+    activityLinks: doc.activity_links.map(toActivityLink),
+    payments: doc.payments.map(toPayment),
+    guestFigures: doc.figures,
+  }
+}
+
 // ---------------------------------------------------------------------------
 // Domain → rows. Undefined fields are omitted so partial patches only touch
 // what changed; null is kept because it is a meaningful value (e.g. no date).
@@ -149,6 +185,8 @@ export const weddingPatchToRow = (p: WeddingPatch): Update<'weddings'> =>
     wedding_date: p.weddingDate,
     budget_mode: p.budgetMode,
     manual_budget_cents: p.manualBudgetCents,
+    visibility: p.visibility,
+    guest_amounts: p.guestAmounts,
   })
 
 export const eventPatchToRow = (p: EventPatch): Update<'events'> =>

@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest'
 import {
   activityPatchToRow,
   eventPatchToRow,
+  fromGuestView,
   newActivityToRow,
   newCategoryDefinitionToRow,
   newEventToRow,
@@ -27,6 +28,10 @@ describe('rows to domain', () => {
       wedding_date: '2028-07-01',
       budget_mode: 'manual',
       manual_budget_cents: 5_000_000,
+      visibility: 'private',
+      share_key: '0123456789abcdef0123456789abcdef',
+      guest_amounts: 'percentages',
+      plan: 'free',
       ...ts,
     }
     expect(toWedding(row)).toEqual({
@@ -35,6 +40,8 @@ describe('rows to domain', () => {
       weddingDate: '2028-07-01',
       budgetMode: 'manual',
       manualBudgetCents: 5_000_000,
+      visibility: 'private',
+      guestAmounts: 'percentages',
       createdAt: ts.created_at,
       updatedAt: ts.updated_at,
     })
@@ -107,6 +114,10 @@ describe('domain to rows', () => {
   it('only includes fields present in a patch', () => {
     expect(eventPatchToRow({ name: 'Sangeet' })).toEqual({ name: 'Sangeet' })
     expect(weddingPatchToRow({ budgetMode: 'manual' })).toEqual({ budget_mode: 'manual' })
+    expect(weddingPatchToRow({ visibility: 'public', guestAmounts: 'percentages' })).toEqual({
+      visibility: 'public',
+      guest_amounts: 'percentages',
+    })
   })
 
   it('keeps explicit nulls, which clear a value', () => {
@@ -177,5 +188,50 @@ describe('toRepositoryError', () => {
     expect(toRepositoryError({ code: '', message: 'TypeError: Failed to fetch' }).reason).toBe(
       'network',
     )
+  })
+})
+
+describe('guest view', () => {
+  const wedding = {
+    id: 'w1',
+    slug: 'main',
+    name: 'Akshen & Anjana',
+    wedding_date: null,
+    budget_mode: 'auto' as const,
+    manual_budget_cents: 0,
+    visibility: 'public' as const,
+    guest_amounts: 'percentages' as const,
+    ...ts,
+  }
+  const empty = {
+    category_definitions: [],
+    events: [],
+    event_categories: [],
+    activities: [],
+    activity_images: [],
+    activity_links: [],
+    payments: [],
+  }
+
+  it('maps the document to a snapshot, keeping the figures', () => {
+    const figures = {
+      wedding: { budget: 1_000_000, paid: 0, child: 1_000_000, over: false },
+      events: {},
+      categories: {},
+      activities: {},
+    }
+    const snapshot = fromGuestView({ wedding, ...empty, figures })
+    expect(snapshot.wedding).toMatchObject({ id: 'w1', guestAmounts: 'percentages' })
+    expect(snapshot.events).toEqual([])
+    expect(snapshot.guestFigures).toEqual(figures)
+  })
+
+  it('has no figures in amounts mode', () => {
+    const snapshot = fromGuestView({
+      wedding: { ...wedding, guest_amounts: 'amounts' },
+      ...empty,
+      figures: null,
+    })
+    expect(snapshot.guestFigures).toBeNull()
   })
 })

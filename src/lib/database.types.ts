@@ -389,31 +389,43 @@ export type Database = {
         Row: {
           budget_mode: Database["public"]["Enums"]["budget_mode"]
           created_at: string
+          guest_amounts: Database["public"]["Enums"]["guest_amounts"]
           id: string
           manual_budget_cents: number
           name: string
+          plan: string
+          share_key: string
           slug: string
           updated_at: string
+          visibility: Database["public"]["Enums"]["wedding_visibility"]
           wedding_date: string | null
         }
         Insert: {
           budget_mode?: Database["public"]["Enums"]["budget_mode"]
           created_at?: string
+          guest_amounts?: Database["public"]["Enums"]["guest_amounts"]
           id?: string
           manual_budget_cents?: number
           name: string
+          plan?: string
+          share_key?: string
           slug: string
           updated_at?: string
+          visibility?: Database["public"]["Enums"]["wedding_visibility"]
           wedding_date?: string | null
         }
         Update: {
           budget_mode?: Database["public"]["Enums"]["budget_mode"]
           created_at?: string
+          guest_amounts?: Database["public"]["Enums"]["guest_amounts"]
           id?: string
           manual_budget_cents?: number
           name?: string
+          plan?: string
+          share_key?: string
           slug?: string
           updated_at?: string
+          visibility?: Database["public"]["Enums"]["wedding_visibility"]
           wedding_date?: string | null
         }
         Relationships: []
@@ -423,15 +435,36 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      budget_share: { Args: { amount: number; total: number }; Returns: number }
+      guest_view: {
+        Args: { p_share_key?: string; p_slug: string }
+        Returns: Json
+      }
       is_planner: { Args: { target_wedding_id: string }; Returns: boolean }
+      new_share_key: { Args: never; Returns: string }
+      reset_share_key: { Args: { p_wedding_id: string }; Returns: string }
+      search_weddings: {
+        Args: { q: string }
+        Returns: {
+          name: string
+          slug: string
+          wedding_date: string
+        }[]
+      }
       storage_object_wedding_id: {
         Args: { object_name: string }
+        Returns: string
+      }
+      viewable_wedding_id: {
+        Args: { p_share_key: string; p_slug: string }
         Returns: string
       }
     }
     Enums: {
       activity_status: "idea" | "planned" | "booked" | "completed"
       budget_mode: "auto" | "manual"
+      guest_amounts: "amounts" | "percentages"
+      wedding_visibility: "public" | "private"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -561,6 +594,8 @@ export const Constants = {
     Enums: {
       activity_status: ["idea", "planned", "booked", "completed"],
       budget_mode: ["auto", "manual"],
+      guest_amounts: ["amounts", "percentages"],
+      wedding_visibility: ["public", "private"],
     },
   },
 } as const

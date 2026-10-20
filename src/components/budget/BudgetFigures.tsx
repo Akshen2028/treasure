@@ -5,6 +5,7 @@ import { formatCad, formatPercent } from '@/domain/money'
 import { cn } from '@/lib/utils'
 
 import { SpendProgress } from './SpendProgress'
+import { useAmountFormat } from './useAmountFormat'
 
 type BudgetFiguresProps = {
   summary: Pick<LevelSummary, 'budgetCents' | 'paidCents' | 'progress'>
@@ -16,6 +17,13 @@ type BudgetFiguresProps = {
 export function BudgetFigures({ summary, size = 'sm', className }: BudgetFiguresProps) {
   const { budgetCents, paidCents, progress } = summary
   const large = size === 'lg'
+  // Guests in percentage mode: budget as a share of the total, paid as a share of this budget.
+  const { shares, format } = useAmountFormat()
+  const paid = shares
+    ? progress.ratio === null
+      ? '—'
+      : formatPercent(progress.ratio)
+    : formatCad(paidCents)
 
   return (
     <div className={cn('flex flex-col gap-2.5', className)}>
@@ -23,14 +31,16 @@ export function BudgetFigures({ summary, size = 'sm', className }: BudgetFigures
         <div>
           <dt className="text-xs tracking-wide text-muted-foreground uppercase">Budget</dt>
           <dd className={cn('font-medium tabular-nums', large ? 'text-2xl' : 'text-base')}>
-            {formatCad(budgetCents)}
+            {format(budgetCents)}
           </dd>
+          {shares && <dd className="text-xs text-muted-foreground">of the total</dd>}
         </div>
         <div className="text-right">
           <dt className="text-xs tracking-wide text-muted-foreground uppercase">Paid</dt>
           <dd className={cn('font-medium tabular-nums', large ? 'text-2xl' : 'text-base')}>
-            {formatCad(paidCents)}
+            {paid}
           </dd>
+          {shares && <dd className="text-xs text-muted-foreground">of this budget</dd>}
         </div>
       </dl>
       <SpendProgress
@@ -43,12 +53,12 @@ export function BudgetFigures({ summary, size = 'sm', className }: BudgetFigures
         {progress.overBudget ? (
           <span className="inline-flex items-center gap-1 font-medium text-destructive">
             <TriangleAlert className="size-3.5" aria-hidden="true" />
-            Over budget by {formatCad(-progress.remainingCents)}
+            {shares ? 'Over budget' : `Over budget by ${formatCad(-progress.remainingCents)}`}
           </span>
         ) : (
-          <span>{formatCad(progress.remainingCents)} remaining</span>
+          !shares && <span>{formatCad(progress.remainingCents)} remaining</span>
         )}
-        {progress.ratio !== null && <span>{formatPercent(progress.ratio)}</span>}
+        {!shares && progress.ratio !== null && <span>{formatPercent(progress.ratio)}</span>}
       </p>
     </div>
   )

@@ -5,7 +5,7 @@ import { type ChatMessage } from '@/domain/chat'
 import { type ChartSpec, chartNote, type EditStatus, editNote } from '@/domain/chatTools'
 import { todayIso } from '@/domain/dates'
 import { buildWeddingExport, exportToMarkdown } from '@/domain/export'
-import { useMediaUrl } from '@/features/media/useMediaUrl'
+import { useMediaUrl } from '@/data/queries'
 
 import type { ApplyResult, EditFocus } from './applyChatEdit'
 import { ChatError, streamChat } from './chatApi'
