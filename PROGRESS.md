@@ -58,16 +58,16 @@ Done at go-live: env vars set in Vercel Production; Supabase public sign-ups dis
 - No CI: Vercel builds on merge but runs no tests. Consider a GitHub Action running
   `npm run check` (and `test:db` with secrets) on PRs.
 - No service worker: installable, but no offline support.
-- Single-wedding app: the wedding is chosen by `VITE_WEDDING_SLUG`; the schema already supports
-  multiple weddings.
+- Single-wedding app: the wedding is chosen by `VITE_WEDDING_SLUG` (multi-wedding planned, PLAN.md
+  §13).
 - Entry bundle ≈530 kB raw (warning limit raised to 600 in `vite.config.ts`).
 - The repo lives in iCloud-synced Documents (risk of `file 2.ext` conflict copies).
 
 ## Next recommended task
 
-Complete the open items above (Site URL check, key rotation, sample-data decision). Then
-the strongest engineering improvement is a committed Playwright e2e + axe suite with a GitHub
-Actions CI workflow.
+Open the app to other couples: approved plan in PLAN.md §13. Start with Phase 1 (visibility,
+share links, guest view, private photos). The key rotation and Supabase Pro upgrade are deferred
+to the launch checklist (Phase 5), before public sign-ups are enabled.
 
 ## Unresolved decisions
 
