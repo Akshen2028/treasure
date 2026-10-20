@@ -181,4 +181,118 @@ Wedding → Events → Categories → Activities → Payments (+ activity links 
 
 - Offline support (service worker).
 - CI (checks on PRs) and a committed browser e2e/accessibility suite.
-- Multi-wedding or multi-planner management UI (schema supports it; not requested).
+- Co-planners (inviting a second editor to a wedding): deferred; see §13.
+
+## 13. Open to other couples 📋
+
+Approved 2026-10-19. Any couple can sign up for free, create one wedding and share it. Each
+phase is its own branch and PR; every migration gets a dry run and user approval before the push.
+
+### Decisions
+
+- **Visibility** (one setting per wedding): **Public** (anyone can view; listed in search) or
+  **Private** (only people with the share link can view; never in search). New weddings default
+  to Private. The existing `main` wedding becomes Public.
+- **Only the planner edits**, whatever the visibility (RLS `is_planner`, unchanged).
+- **Share link** for Private weddings carries a random share key
+  (`/w/{slug}?k={key}`); slugs are guessable, the key is not. Settings: Copy link, Reset link
+  (new key; old links stop working).
+- **Guests see amounts or percentages** (planner setting, applies to Public and Private).
+  Percentages: each event/category/activity budget as % of the wedding's total budget; paid as %
+  of that item's budget; over budget keeps its icon; payments show date and status only.
+  Planners always see amounts.
+- **Guests read through one server function** (`guest_view(slug, share_key)`), never the tables,
+  so private weddings and raw amounts (in percentage mode) never leave the database.
+- **Photos follow visibility:** one private bucket; signed URLs (about 1 hour) are issued only
+  after the same view check.
+- **Sign-in:** Google, or a passwordless email link/code (Supabase Auth). No passwords. Same
+  email both ways links to one account. Email needs custom SMTP (Resend free tier) and a bot
+  check (Cloudflare Turnstile). Supabase stays on the free plan until launch.
+- **One wedding per account**, created in one step after first sign-in (names, optional date).
+  Co-planners: later.
+- **Your login:** the shared email/password planner account is retired; your Google account
+  becomes planner of `main` via a one-off script (data unchanged).
+- **AI assistant:** on for every wedding, free, with a daily limit per wedding enforced in the
+  `chat` function. Its own Anthropic workspace and key with a monthly spend limit.
+- **Paid later:** each wedding has a server-only `plan` (`free` now) and plan-based limits,
+  always enforced server-side. Later: Stripe Checkout + signed webhook (Edge Function) sets
+  `plan`; likely a one-time payment per wedding.
+- **Legal:** simple Terms and Privacy pages (drafted for review, not legal advice), linked from
+  the sign-up flow ("By continuing you agree to…").
+
+### Defaults (changeable later)
+
+| Item                              | Default                                                               |
+| --------------------------------- | --------------------------------------------------------------------- |
+| AI questions per wedding per day  | 30                                                                    |
+| Anthropic workspace monthly limit | $20                                                                   |
+| Photos per wedding                | 300 (5 MB each before resizing)                                       |
+| Records per wedding               | about 50 events, 2,000 activities, 5,000 payments (abuse caps)        |
+| Slug                              | from the couple's names (`alex-sam`), number added if taken; editable |
+| Guest screens                     | Home, events, categories, activities, Search only                     |
+| Old URLs                          | `/home` etc. redirect to `/w/main/...`                                |
+
+### Steps
+
+**Phase 1: Visibility and guest access (DB + RLS).** Safe to ship while `main` is the only
+wedding.
+
+1. Migration: `weddings.visibility` (`public` | `private`, default `private`), `share_key`
+   (random, server-generated), `guest_amounts` (`amounts` | `percentages`), `plan`
+   (`free`, server-only). Set `main` to `public`.
+2. Revoke anon `select` on wedding tables; replace "readable by everyone" policies with
+   planner-only reads. Add `guest_view(slug, share_key)` (security definer): returns the
+   active snapshot if public or the key matches, with amounts converted to percentages when set.
+   Percentage maths lives in `src/domain` (unit-tested) and is mirrored in SQL, or computed in
+   the function from the same rules.
+3. `search_weddings(q)`: public weddings only, at least 3 characters, max 10 results, returns
+   name, date, slug.
+4. `reset_share_key(wedding_id)` for planners.
+5. Storage: make `wedding-media` private; a signed-URL function (Edge Function or RPC) checks
+   the same view rule. Migrate existing image URLs.
+6. App: guest data loads through `guest_view`; planner path unchanged. Guest UI renders
+   percentages when present.
+7. Integration tests: anon can't read tables; private needs the right key; reset key revokes old
+   links; search never returns private; percentage mode returns no cents; signed URLs refused
+   without access; one planner can't read or write another wedding.
+
+**Phase 2: Google and email sign-in, one-step wedding creation.**
+
+8. Google Cloud OAuth client and consent screen (`email profile` only; privacy link); enable
+   the Google provider in Supabase; redirect URL allowlist (www, Vercel domains, localhost).
+   _User steps provided when we get here._
+9. Email sign-in link/code: Resend account, DNS records in Cloudflare, Supabase custom SMTP,
+   Turnstile on the email form. _User steps provided when we get here._
+10. `create_my_wedding(name, date)` (security definer): one per user, unique slug, inserts the
+    wedding and the `planners` row in one transaction. Clients still can't insert into
+    `weddings` or `planners`.
+11. Sign-in screen and first-run "Create your wedding" screen, with Terms/Privacy consent line.
+12. Move `main` to your Google account (one-off script), then retire the shared account,
+    `VITE_PLANNER_EMAIL`, `planner:setup`, Change password and the login throttle UI.
+
+**Phase 3: Multi-wedding app.**
+
+13. Routes under `/w/:slug/...` (via `paths.ts`); redirects from old URLs to `main`; remove
+    `VITE_WEDDING_SLUG`; query keys by wedding id.
+14. Landing page: search Public weddings, open as guest, "Continue with Google / email";
+    signed-in planners get "My wedding".
+15. Settings: visibility, Copy/Reset link, guest amounts vs percentages, rename and slug, Terms
+    and Privacy pages.
+16. Delete my wedding and account: Edge Function (service role) hard-deletes the wedding's
+    rows, photos and the auth user after `ConfirmDialog`.
+
+**Phase 4: Abuse limits (before sign-ups open).**
+
+17. AI: usage table (server-write only) and per-wedding daily limit in `chat`; new Anthropic
+    workspace "Wedonomics" with a monthly limit and its own key in `ANTHROPIC_API_KEY`.
+    _User steps provided when we get here._
+18. Triggers capping records and photos per wedding; name/slug length limits and a reserved or
+    offensive slug blocklist.
+19. Check Supabase Auth rate limits; Vercel bot protection on the landing page.
+
+**Phase 5: Launch checklist.**
+
+20. Rotate the Supabase secret key; upgrade to Supabase Pro (backups, no pausing); run the
+    Security Advisor.
+21. CI: `npm run check` and `test:db` on PRs. Error monitoring (e.g. Sentry free tier).
+22. `/security-review` of the release, then enable sign-ups in Supabase.
