@@ -2,6 +2,8 @@ import type { SpendProgress as Progress } from '@/domain/budget'
 import { formatCad, formatPercent } from '@/domain/money'
 import { cn } from '@/lib/utils'
 
+import { useAmountFormat } from './useAmountFormat'
+
 type SpendProgressProps = {
   budgetCents: number
   paidCents: number
@@ -18,8 +20,12 @@ export function SpendProgress({
   size = 'md',
   className,
 }: SpendProgressProps) {
-  const label =
-    progress.ratio === null
+  const { shares } = useAmountFormat()
+  const label = shares
+    ? progress.ratio === null
+      ? 'No budget set'
+      : `${formatPercent(progress.ratio)} of the budget paid`
+    : progress.ratio === null
       ? `${formatCad(paidCents)} paid, no budget set`
       : `${formatCad(paidCents)} paid of ${formatCad(budgetCents)}, ${formatPercent(progress.ratio)}`
 

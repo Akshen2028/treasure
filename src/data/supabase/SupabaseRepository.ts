@@ -21,6 +21,9 @@ export const MEDIA_BUCKET = 'wedding-media'
 /** Uploaded media never changes in place (new uploads get new paths), so cache it for a year. */
 const MEDIA_CACHE_SECONDS = '31536000'
 
+/** Signed media URLs last an hour; the app refreshes them before then. */
+export const SIGNED_URL_SECONDS = 3600
+
 const SOFT_DELETE_TABLES = {
   definition: 'category_definitions',
   event: 'events',
@@ -164,6 +167,16 @@ export function createSupabaseRepository(client: Client): WeddingRepository {
         activityLinks: links.map(map.toActivityLink),
         payments: payments.map(map.toPayment),
       }
+    },
+
+    async loadGuestView(slug, shareKey) {
+      const { data, error } = await client.rpc('guest_view', {
+        p_slug: slug,
+        ...(shareKey ? { p_share_key: shareKey } : {}),
+      })
+      if (error) throw toRepositoryError(error)
+      if (data === null) throw new WeddingNotFoundError(slug)
+      return map.fromGuestView(data)
     },
 
     async updateWedding(id, patch) {
@@ -373,7 +386,33 @@ export function createSupabaseRepository(client: Client): WeddingRepository {
       }
     },
 
-    mediaUrl: (path) => client.storage.from(MEDIA_BUCKET).getPublicUrl(path).data.publicUrl,
+    async signMedia({ audience, slug, shareKey, paths }) {
+      if (audience === 'planner') {
+        if (paths.length === 0) return {}
+        // Storage policies let planners read their own wedding's folder.
+        const { data, error } = await client.storage
+          .from(MEDIA_BUCKET)
+          .createSignedUrls(paths, SIGNED_URL_SECONDS)
+        if (error) throw new RepositoryError('unknown', 'Photos couldn’t be loaded.')
+        return Object.fromEntries(
+          data.flatMap((d) => (d.path && d.signedUrl ? [[d.path, d.signedUrl]] : [])),
+        )
+      }
+      // Guests can't read storage at all; the media function checks they may view the
+      // wedding and signs only the photos the guest view shows.
+      const { data, error } = await client.functions.invoke<{ urls: Record<string, string> }>(
+        'media',
+        { body: { slug, shareKey } },
+      )
+      if (error || !data) throw new RepositoryError('unknown', 'Photos couldn’t be loaded.')
+      return data.urls
+    },
+
+    async resetShareKey(weddingId) {
+      const { data, error } = await client.rpc('reset_share_key', { p_wedding_id: weddingId })
+      if (error) throw toRepositoryError(error)
+      return data
+    },
 
     softDelete: (kind, id) => setDeletedAt(kind, id, new Date().toISOString()),
     restore: (kind, id) => setDeletedAt(kind, id, null),

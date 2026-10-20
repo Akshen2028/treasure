@@ -42,7 +42,7 @@ async function objectExists(path: string) {
 }
 
 describe('activity photos', () => {
-  it('uploads the photo and thumbnail, records them, and serves them publicly', async () => {
+  it('uploads the photo and thumbnail, records them, and serves them to planners signed', async () => {
     const saved = await planner.addActivityImage({
       weddingId: f.weddingId,
       activityId: f.activityId,
@@ -52,7 +52,14 @@ describe('activity photos', () => {
     expect(saved.thumbnailPath).toMatch(/-thumb\.png$/)
     expect(saved).toMatchObject({ mimeType: 'image/png', width: 1, height: 1 })
 
-    const response = await fetch(planner.mediaUrl(saved.storagePath))
+    const urls = await planner.signMedia({
+      audience: 'planner',
+      slug: f.weddingSlug,
+      shareKey: null,
+      paths: [saved.storagePath, saved.thumbnailPath!],
+    })
+    expect(Object.keys(urls).sort()).toEqual([saved.storagePath, saved.thumbnailPath!].sort())
+    const response = await fetch(urls[saved.storagePath]!)
     expect(response.status).toBe(200)
 
     const snapshot = await guest.loadSnapshot(f.weddingSlug)

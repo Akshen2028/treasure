@@ -77,6 +77,10 @@ and `SUPABASE_SECRET_KEY` (used by `test:db`, `planner:setup`, `seed:dev`). Temp
   is off (`config.toml`); the function verifies the session and `is_planner` itself. Spend is
   capped by the monthly limit in the Anthropic Console. Logs: Supabase dashboard → Edge
   Functions → chat.
+- Edge Function `media` (`supabase/functions/media/`): signed photo URLs for guests, after
+  the same visibility/share-key check as `guest_view()`. Uses the built-in
+  `SUPABASE_SERVICE_ROLE_KEY` (server-side only). Deploy with `supabase functions deploy media`
+  **after user approval**; gateway JWT check off. Deployed 2026-10-19.
 - **Free-tier pause:** the project pauses after ~7 days without traffic; resume from the
   dashboard. The app shows an error state while paused.
 

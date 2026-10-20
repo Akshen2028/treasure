@@ -2,6 +2,7 @@ import { useState } from 'react'
 
 import { SegmentedControl } from '@/components/forms/SegmentedControl'
 import type { WeddingData } from '@/data/queries'
+import { formatShare } from '@/domain/guestFigures'
 
 import { categoryAllocation, eventAllocation, type Measure, UNGROUPED } from './allocation'
 import { ChartCarousel } from './ChartCarousel'
@@ -17,6 +18,8 @@ export function DashboardCharts({ data }: { data: WeddingData }) {
   const [measure, setMeasure] = useState<Measure>('budget')
   const empty = measure === 'budget' ? 'No budget set yet.' : 'Nothing paid yet.'
   const { active, budget } = data
+  // Guests in percentage mode: values are shares of the total budget.
+  const formatValue = data.showsShares ? formatShare : undefined
 
   return (
     <section className="mt-10" aria-labelledby="allocation-heading">
@@ -39,6 +42,7 @@ export function DashboardCharts({ data }: { data: WeddingData }) {
           allocation={eventAllocation(active, budget, measure)}
           ungrouped={eventAllocation(active, budget, measure, UNGROUPED)}
           emptyText={empty}
+          formatValue={formatValue}
         />
         <DonutCard
           title="By category"
@@ -46,6 +50,7 @@ export function DashboardCharts({ data }: { data: WeddingData }) {
           allocation={categoryAllocation(active, budget, measure)}
           ungrouped={categoryAllocation(active, budget, measure, UNGROUPED)}
           emptyText={empty}
+          formatValue={formatValue}
         />
       </ChartCarousel>
     </section>

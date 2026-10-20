@@ -1,6 +1,7 @@
 import { TriangleAlert } from 'lucide-react'
 
 import { SpendProgress } from '@/components/budget/SpendProgress'
+import { useAmountFormat } from '@/components/budget/useAmountFormat'
 import type { ActivitySummary } from '@/domain/budget'
 import { formatCad, formatPercent } from '@/domain/money'
 
@@ -22,19 +23,33 @@ function Figure({ label, value, muted }: { label: string; value: string; muted?:
 export function ActivityMoney({ summary }: { summary: ActivitySummary }) {
   const { budgetCents, paidCents, actualCostCents, outstandingCents, progress } = summary
   const known = actualCostCents !== null
+  // Guests in percentage mode see shares only; actual costs aren't shared with them.
+  const { shares, format } = useAmountFormat()
 
   return (
     <div className="flex flex-col gap-4">
       <dl className="grid grid-cols-2 gap-x-4 gap-y-4">
-        <Figure label="Budget" value={formatCad(budgetCents)} />
-        <Figure label="Paid" value={formatCad(paidCents)} />
-        <Figure
-          label="Actual cost"
-          value={known ? formatCad(actualCostCents) : 'Not known yet'}
-          muted={!known}
-        />
-        {outstandingCents !== null && (
-          <Figure label="Still to pay" value={formatCad(outstandingCents)} />
+        {shares ? (
+          <>
+            <Figure label="Budget (of total)" value={format(budgetCents)} />
+            <Figure
+              label="Paid (of budget)"
+              value={progress.ratio === null ? '—' : formatPercent(progress.ratio)}
+            />
+          </>
+        ) : (
+          <>
+            <Figure label="Budget" value={formatCad(budgetCents)} />
+            <Figure label="Paid" value={formatCad(paidCents)} />
+            <Figure
+              label="Actual cost"
+              value={known ? formatCad(actualCostCents) : 'Not known yet'}
+              muted={!known}
+            />
+            {outstandingCents !== null && (
+              <Figure label="Still to pay" value={formatCad(outstandingCents)} />
+            )}
+          </>
         )}
       </dl>
 
@@ -52,8 +67,10 @@ export function ActivityMoney({ summary }: { summary: ActivitySummary }) {
             <li className="flex items-start gap-2 rounded-xl bg-destructive/8 px-3.5 py-2.5 text-sm text-destructive">
               <TriangleAlert className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
               <span>
-                <strong className="font-medium">Over budget.</strong> Payments are{' '}
-                {formatCad(-progress.remainingCents)} more than the budget.
+                <strong className="font-medium">Over budget.</strong>{' '}
+                {shares
+                  ? 'Payments are more than the budget.'
+                  : `Payments are ${formatCad(-progress.remainingCents)} more than the budget.`}
               </span>
             </li>
           )}

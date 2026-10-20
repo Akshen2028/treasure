@@ -105,7 +105,7 @@ export function HomePage() {
             <>
               <WeddingHero wedding={data.snapshot.wedding} />
               <div className="mt-8">
-                <WeddingOverview budget={data.budget} />
+                <WeddingOverview budget={data.budget} shares={data.showsShares} />
               </div>
               {data.active.events.length > 0 && <DashboardCharts data={data} />}
               <EventsSection data={data} />

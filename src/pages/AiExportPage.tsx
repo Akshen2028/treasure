@@ -14,7 +14,7 @@ import { type WeddingData, weddingKeys } from '@/data/queries'
 import { CHAT_SUGGESTIONS } from '@/domain/chat'
 import { buildWeddingExport, exportFileName, exportToJson, exportToMarkdown } from '@/domain/export'
 import { SendToAi } from '@/features/export/SendToAi'
-import { useMediaUrl } from '@/features/media/useMediaUrl'
+import { useMediaUrl } from '@/data/queries'
 import { copyText, downloadText } from '@/lib/download'
 
 type Format = 'markdown' | 'json'

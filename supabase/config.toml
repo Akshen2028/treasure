@@ -387,3 +387,8 @@ s3_secret_key = "env(S3_SECRET_KEY)"
 # asymmetric JWT keys), so the gateway's legacy JWT check is off.
 [functions.chat]
 verify_jwt = false
+
+# Signed photo URLs for guests. No session is needed (guests aren't signed in); the function
+# checks the wedding's visibility and share key itself.
+[functions.media]
+verify_jwt = false

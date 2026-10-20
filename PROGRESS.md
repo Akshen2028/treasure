@@ -65,8 +65,12 @@ Done at go-live: env vars set in Vercel Production; Supabase public sign-ups dis
 
 ## Next recommended task
 
-Open the app to other couples: approved plan in PLAN.md §13. Start with Phase 1 (visibility,
-share links, guest view, private photos). The key rotation and Supabase Pro upgrade are deferred
+Open the app to other couples (PLAN.md §13). **Phase 1 in progress** on branch
+`phase1/guest-access` (PR A): migration `20261019120000_guest_access.sql` is pushed to
+production and the `media` Edge Function is deployed (both additive; the live app is
+unaffected). PR A switches guests to `guest_view()` and signed photo URLs. After PR A is live,
+PR B: revoke anon table reads, planner-only select policies, make `wedding-media` private,
+update the older integration tests that read tables as a guest. Then Phase 2. The key rotation and Supabase Pro upgrade are deferred
 to the launch checklist (Phase 5), before public sign-ups are enabled.
 
 ## Unresolved decisions

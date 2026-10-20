@@ -31,6 +31,14 @@ export type IsoTimestamp = string
 export const BUDGET_MODES = ['auto', 'manual'] as const
 export type BudgetMode = (typeof BUDGET_MODES)[number]
 
+/** Public: anyone can view and find it in search. Private: only people with the share link. */
+export const WEDDING_VISIBILITIES = ['public', 'private'] as const
+export type WeddingVisibility = (typeof WEDDING_VISIBILITIES)[number]
+
+/** What guests see: real amounts, or each figure as a share of the wedding's total budget. */
+export const GUEST_AMOUNTS = ['amounts', 'percentages'] as const
+export type GuestAmounts = (typeof GUEST_AMOUNTS)[number]
+
 export const ACTIVITY_STATUSES = ['idea', 'planned', 'booked', 'completed'] as const
 export type ActivityStatus = (typeof ACTIVITY_STATUSES)[number]
 
@@ -50,6 +58,8 @@ export type Wedding = Timestamps & {
   budgetMode: BudgetMode
   /** Wedding budget in manual mode; ignored in auto mode. */
   manualBudgetCents: number
+  visibility: WeddingVisibility
+  guestAmounts: GuestAmounts
 }
 
 /**
@@ -138,6 +148,21 @@ export type Payment = Timestamps &
     note: string
   }
 
+/**
+ * A level's figures for guests in percentage mode, in parts per million of the wedding's
+ * total budget (`SHARE_SCALE`), with the over-budget flag computed from the real amounts.
+ */
+export type ShareFigures = { budget: number; paid: number; child: number; over: boolean }
+export type ActivityShareFigures = { budget: number; paid: number; over: boolean; payments: number }
+
+/** Budget figures sent to guests instead of amounts. Keyed by record id. */
+export type GuestFigures = {
+  wedding: ShareFigures
+  events: Record<Id, ShareFigures>
+  categories: Record<Id, ShareFigures>
+  activities: Record<Id, ActivityShareFigures>
+}
+
 /** Everything about one wedding, including soft-deleted records. */
 export type WeddingSnapshot = {
   wedding: Wedding
@@ -148,4 +173,9 @@ export type WeddingSnapshot = {
   activityImages: ActivityImage[]
   activityLinks: ActivityLink[]
   payments: Payment[]
+  /**
+   * Present only for guests when the wedding shows percentages: every money field in the
+   * records is then blanked, and these figures replace them.
+   */
+  guestFigures?: GuestFigures | null
 }

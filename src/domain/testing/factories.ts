@@ -32,6 +32,8 @@ export class SnapshotBuilder {
       weddingDate: '2027-06-12',
       budgetMode: mode,
       manualBudgetCents,
+      visibility: 'public',
+      guestAmounts: 'amounts',
       createdAt: TS,
       updatedAt: TS,
     }
