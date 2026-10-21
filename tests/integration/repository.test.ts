@@ -27,7 +27,7 @@ afterAll(async () => {
 
 describe('loadSnapshot', () => {
   it('loads the whole wedding as domain objects', async () => {
-    const snapshot = await guest.loadSnapshot(f.weddingSlug)
+    const snapshot = await planner.loadSnapshot(f.weddingSlug)
     expect(snapshot.wedding).toMatchObject({ id: f.weddingId, budgetMode: 'auto' })
     expect(snapshot.categoryDefinitions).toHaveLength(7)
     expect(snapshot.events.map((e) => e.id)).toContain(f.eventId)
@@ -36,13 +36,13 @@ describe('loadSnapshot', () => {
   })
 
   it('never mixes in another wedding’s records', async () => {
-    const snapshot = await guest.loadSnapshot(f.weddingSlug)
+    const snapshot = await guest.loadGuestView(f.weddingSlug, f.weddingShareKey)
     expect(snapshot.events.some((e) => e.id === f.otherEventId)).toBe(false)
     expect(snapshot.activities.some((a) => a.id === f.otherActivityId)).toBe(false)
   })
 
   it('throws WeddingNotFoundError for an unknown slug', async () => {
-    await expect(guest.loadSnapshot('test-does-not-exist')).rejects.toBeInstanceOf(
+    await expect(planner.loadSnapshot('test-does-not-exist')).rejects.toBeInstanceOf(
       WeddingNotFoundError,
     )
   })
@@ -114,11 +114,11 @@ describe('planner writes through the repository', () => {
     expect(plannerView.events.find((e) => e.id === f.eventId)?.deletedAt).not.toBeNull()
     expect(selectActive(plannerView).activities.some((a) => a.id === f.activityId)).toBe(false)
 
-    const guestView = await guest.loadSnapshot(f.weddingSlug)
+    const guestView = await guest.loadGuestView(f.weddingSlug, f.weddingShareKey)
     expect(guestView.events.some((e) => e.id === f.eventId)).toBe(false)
 
     await planner.restore('event', f.eventId)
-    const restored = await guest.loadSnapshot(f.weddingSlug)
+    const restored = await guest.loadGuestView(f.weddingSlug, f.weddingShareKey)
     expect(selectActive(restored).activities.some((a) => a.id === f.activityId)).toBe(true)
   })
 })

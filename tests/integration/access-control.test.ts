@@ -58,23 +58,12 @@ async function eventName(id: string) {
 }
 
 describe('guests (public key, no session)', () => {
-  it('can read the wedding and its whole tree', async () => {
-    const { data: wedding } = await f.guest
-      .from('weddings')
-      .select('id, name, budget_mode')
-      .eq('id', f.weddingId)
-      .single()
-    expect(wedding?.id).toBe(f.weddingId)
-
-    for (const table of [...SOFT_DELETABLE, 'category_definitions']) {
-      const { error } = await untyped(f.guest)
-        .from(table)
-        .select('id')
-        .eq('wedding_id', f.weddingId)
-      expect(error, table).toBeNull()
+  it('cannot read any wedding table directly (only through guest_view)', async () => {
+    for (const table of ['weddings', ...SOFT_DELETABLE, 'category_definitions']) {
+      const { data, error } = await untyped(f.guest).from(table).select('id').limit(1)
+      expect(error?.code, table).toBe(DENIED)
+      expect(data, table).toBeNull()
     }
-    const { data: payments } = await f.guest.from('payments').select('id, amount_cents')
-    expect(payments?.some((p) => p.id === f.paymentId)).toBe(true)
   })
 
   it.each(['category_definitions', 'events', 'activities', 'activity_links', 'payments'])(
@@ -122,6 +111,23 @@ describe('guests (public key, no session)', () => {
 })
 
 describe('signed-in users who are not planners', () => {
+  it('cannot read another wedding’s rows, even public ones', async () => {
+    await f.admin.from('weddings').update({ visibility: 'public' }).eq('id', f.weddingId)
+    try {
+      for (const table of ['weddings', ...SOFT_DELETABLE, 'category_definitions']) {
+        const column = table === 'weddings' ? 'id' : 'wedding_id'
+        const { data, error } = await untyped(f.outsiderClient)
+          .from(table)
+          .select('id')
+          .eq(column, f.weddingId)
+        expect(error, table).toBeNull()
+        expect(data, table).toEqual([])
+      }
+    } finally {
+      await f.admin.from('weddings').update({ visibility: 'private' }).eq('id', f.weddingId)
+    }
+  })
+
   it.each(['category_definitions', 'events', 'activities', 'activity_links', 'payments'])(
     'cannot insert into %s',
     async (table) => {
@@ -282,8 +288,6 @@ describe('soft deletion visibility', () => {
       .select('id')
     expect(removed.data).toHaveLength(1)
 
-    const asGuest = await f.guest.from('activity_links').select('id').eq('id', id)
-    expect(asGuest.data).toEqual([])
     const asOutsider = await f.outsiderClient.from('activity_links').select('id').eq('id', id)
     expect(asOutsider.data).toEqual([])
     const asPlanner = await f.plannerClient.from('activity_links').select('id').eq('id', id)
@@ -295,6 +299,5 @@ describe('soft deletion visibility', () => {
       .eq('id', id)
       .select('id')
     expect(restored.data).toHaveLength(1)
-    expect((await f.guest.from('activity_links').select('id').eq('id', id)).data).toHaveLength(1)
   })
 })

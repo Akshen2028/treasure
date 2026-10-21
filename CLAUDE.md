@@ -38,13 +38,16 @@ Auth, Storage). Node 24 via nvm (`.nvmrc`); prefix shell commands with
   actual cost is known.
 - Soft delete only (`deleted_at`). Children of a deleted parent are hidden, not modified;
   restoring the parent brings them back. Hard DELETE is revoked for API roles.
-- Guests: no password, read-only via publishable key + RLS select. Planner: one Supabase Auth
-  user listed in `planners`; writes allowed by RLS `is_planner(wedding_id)`. Hiding buttons is
+- Guests: no password; they read only through `guest_view(slug, share_key)` (security definer:
+  public wedding or matching share key; active rows only; no amounts in percentage mode). The
+  anon role has no table SELECT; tables are readable by planners only. Planner: one Supabase
+  Auth user listed in `planners`; reads and writes allowed by RLS `is_planner(wedding_id)`. Hiding buttons is
   UX only; RLS is the enforcement. Never ship the secret key, a password, or service-role access
   to the browser. Only public values go in `VITE_*`.
 - Never commit `.env*` files (only `.env.example` / `.env.test.example`).
-- Storage: public bucket `wedding-media`, paths `{wedding_id}/...`, planners-only writes; images
-  are resized to WebP in the browser before upload.
+- Storage: private bucket `wedding-media`, paths `{wedding_id}/...`, planners-only writes; images
+  are resized to WebP in the browser before upload. Photos are shown via ~1 h signed URLs:
+  planners sign via storage policies, guests via the `media` Edge Function (same view check).
 
 ## Database rules
 

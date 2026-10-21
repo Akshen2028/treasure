@@ -12,6 +12,8 @@ export type Fixture = {
   /** Wedding the planner can edit. */
   weddingId: string
   weddingSlug: string
+  /** Opens `weddingId` (private, like every new wedding) through the guest view. */
+  weddingShareKey: string
   /** A second wedding the planner has no rights to. */
   otherWeddingId: string
   /** One event → category → activity → payment chain inside `weddingId`. */
@@ -142,7 +144,7 @@ export async function createFixture(): Promise<Fixture> {
   const admin = adminClient()
   const runId = randomUUID().slice(0, 8)
   const insertWedding = async (slug: string, name: string) =>
-    must(await admin.from('weddings').insert({ slug, name }).select('id').single(), name)
+    must(await admin.from('weddings').insert({ slug, name }).select('id, share_key').single(), name)
 
   // Independent steps run concurrently: each request has noticeable network latency.
   const [wedding, other, planner, outsider] = await Promise.all([
@@ -169,6 +171,7 @@ export async function createFixture(): Promise<Fixture> {
     admin,
     weddingId: wedding.id,
     weddingSlug: `${TEST_SLUG_PREFIX}${runId}`,
+    weddingShareKey: wedding.share_key,
     otherWeddingId: other.id,
     eventId: main.eventId,
     eventCategoryId: main.categoryId,

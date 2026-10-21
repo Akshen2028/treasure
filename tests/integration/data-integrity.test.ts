@@ -20,7 +20,7 @@ const UNIQUE_VIOLATION = '23505'
 
 describe('new weddings', () => {
   it('start with the seven default categories', async () => {
-    const { data } = await f.guest
+    const { data } = await f.plannerClient
       .from('category_definitions')
       .select('name, is_default')
       .eq('wedding_id', f.weddingId)
@@ -172,7 +172,7 @@ describe('restoring records', () => {
   it('restores a payment exactly once, without duplicating it', async () => {
     const countActive = async () =>
       (
-        await f.guest
+        await f.plannerClient
           .from('payments')
           .select('id')
           .eq('activity_id', f.activityId)
@@ -203,7 +203,11 @@ describe('restoring records', () => {
     expect(child.data?.deleted_at).toBeNull()
 
     await f.plannerClient.from('events').update({ deleted_at: null }).eq('id', f.eventId)
-    const event = await f.guest.from('events').select('id').eq('id', f.eventId)
+    const event = await f.plannerClient
+      .from('events')
+      .select('id')
+      .eq('id', f.eventId)
+      .is('deleted_at', null)
     expect(event.data).toHaveLength(1)
   })
 })

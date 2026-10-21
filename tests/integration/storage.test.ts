@@ -51,15 +51,23 @@ describe('media uploads', () => {
     expect(loose.error).not.toBeNull()
   })
 
-  it('accepts planner uploads to their wedding, viewable publicly', async () => {
+  it('accepts planner uploads to their wedding, served only through signed URLs', async () => {
     const target = path(f.weddingId, 'planner')
     const { error } = await f.plannerClient.storage
       .from(MEDIA_BUCKET)
       .upload(target, PNG, { contentType: 'image/png' })
     expect(error).toBeNull()
 
+    // The bucket is private: the public URL doesn't work, and guests can't sign.
     const { data } = f.guest.storage.from(MEDIA_BUCKET).getPublicUrl(target)
-    const response = await fetch(data.publicUrl)
+    expect((await fetch(data.publicUrl)).ok).toBe(false)
+    const asGuest = await f.guest.storage.from(MEDIA_BUCKET).createSignedUrl(target, 60)
+    expect(asGuest.data).toBeNull()
+    const asOutsider = await f.outsiderClient.storage.from(MEDIA_BUCKET).createSignedUrl(target, 60)
+    expect(asOutsider.data).toBeNull()
+
+    const signed = await f.plannerClient.storage.from(MEDIA_BUCKET).createSignedUrl(target, 60)
+    const response = await fetch(signed.data!.signedUrl)
     expect(response.status).toBe(200)
     expect(response.headers.get('content-type')).toContain('image/png')
   })
@@ -81,7 +89,7 @@ describe('media uploads', () => {
     // Checking the bucket configuration proves the server-side limit without uploading 10 MB.
     const { data, error } = await f.admin.storage.getBucket(MEDIA_BUCKET)
     expect(error).toBeNull()
-    expect(data?.public).toBe(true)
+    expect(data?.public).toBe(false)
     expect(Number(data?.file_size_limit)).toBe(10 * 1024 * 1024)
     expect([...(data?.allowed_mime_types ?? [])].sort()).toEqual([
       'image/gif',
@@ -100,8 +108,8 @@ describe('media uploads', () => {
     await f.guest.storage.from(MEDIA_BUCKET).remove([target])
     await f.outsiderClient.storage.from(MEDIA_BUCKET).remove([target])
 
-    const { data } = f.guest.storage.from(MEDIA_BUCKET).getPublicUrl(target)
-    expect((await fetch(data.publicUrl)).status).toBe(200)
+    const { data } = await f.admin.storage.from(MEDIA_BUCKET).createSignedUrl(target, 60)
+    expect((await fetch(data!.signedUrl)).status).toBe(200)
   })
 
   it('lets planners remove their own wedding’s media', async () => {

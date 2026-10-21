@@ -46,8 +46,8 @@ Wedding → Events → Categories → Activities → Payments (+ activity links 
 
 ## 4. Access and security ✅
 
-- **Guest:** "Continue as Guest", no password. Reads with the publishable key; RLS allows
-  `select` on active rows. "Entered" is only a remembered UI preference, not a credential.
+- **Guest:** "Continue as Guest", no password. Reads only through `guest_view()` (§13); the
+  publishable key has no table access. "Entered" is only a remembered UI preference, not a credential.
 - **Planner:** one shared Supabase Auth account (email in `VITE_PLANNER_EMAIL`; the password is
   never in the frontend). Rows in `planners` link users to weddings; RLS writes use
   `is_planner(wedding_id)` (security definer). Created or reset only via `npm run planner:setup`
@@ -75,9 +75,10 @@ Wedding → Events → Categories → Activities → Payments (+ activity links 
 - Activity photo galleries with a full-screen lightbox; one cover photo per event.
 - Resized in the browser before upload (orientation fixed, ≤2048 px, WebP or JPEG fallback,
   plus a thumbnail; GIFs kept as-is), because phone originals are 5–15 MB.
-- Public bucket `wedding-media` (10 MB, jpeg/png/webp/gif enforced server-side). Paths start
-  with the wedding id; only that wedding's planners can write. Public because guests must see
-  photos without auth; object names are random UUIDs.
+- Private bucket `wedding-media` (10 MB, jpeg/png/webp/gif enforced server-side). Paths start
+  with the wedding id; only that wedding's planners can write. Photos are shown through ~1 h
+  signed URLs: planners sign via storage policies, guests via the `media` Edge Function after
+  the same visibility check as `guest_view()` (§13).
 
 ## 7. Dashboard and charts ✅
 
@@ -235,7 +236,7 @@ phase is its own branch and PR; every migration gets a dry run and user approval
 ### Steps
 
 **Phase 1: Visibility and guest access (DB + RLS).** Safe to ship while `main` is the only
-wedding. 🟡 Shipped as two PRs so guests never break: **A** (migration
+wedding. ✅ Shipped as two PRs so guests never break: **A** (migration
 `20261019120000_guest_access.sql`, `media` function, app reads via `guest_view`, steps 1, 3, 4,
 6 and the additive half of 2 and 5) then **B** after A is live (revoke anon table reads,
 planner-only select policies, private bucket, test updates). Percentage figures are parts per
