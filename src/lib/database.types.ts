@@ -436,6 +436,29 @@ export type Database = {
     }
     Functions: {
       budget_share: { Args: { amount: number; total: number }; Returns: number }
+      create_my_wedding: {
+        Args: { p_name: string; p_wedding_date?: string }
+        Returns: {
+          budget_mode: Database["public"]["Enums"]["budget_mode"]
+          created_at: string
+          guest_amounts: Database["public"]["Enums"]["guest_amounts"]
+          id: string
+          manual_budget_cents: number
+          name: string
+          plan: string
+          share_key: string
+          slug: string
+          updated_at: string
+          visibility: Database["public"]["Enums"]["wedding_visibility"]
+          wedding_date: string | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "weddings"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       guest_view: {
         Args: { p_share_key?: string; p_slug: string }
         Returns: Json
@@ -451,6 +474,7 @@ export type Database = {
           wedding_date: string
         }[]
       }
+      slugify: { Args: { p_name: string }; Returns: string }
       storage_object_wedding_id: {
         Args: { object_name: string }
         Returns: string

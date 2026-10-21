@@ -1,6 +1,6 @@
 # Progress and handoff
 
-_Last updated: 2026-10-19. Keep this short and current; it is not a changelog (PRs are)._
+_Last updated: 2026-10-20. Keep this short and current; it is not a changelog (PRs are)._
 
 ## Status
 
@@ -25,9 +25,9 @@ _Last updated: 2026-10-19. Keep this short and current; it is not a changelog (P
 
 ## Verification (2026-10-17, at PR #15/#16)
 
-- `npm run check`: typecheck, lint, format; 230 unit tests pass. `npm run build` passes (entry
+- `npm run check`: typecheck, lint, format; 230 unit tests pass (369 at PR C, 2026-10-20). `npm run build` passes (entry
   chunk ≈152 kB gzip; Recharts split into the Home chunk).
-- `npm run test:db`: 91/91 integration tests pass (RLS, sessions, storage, data integrity).
+- `npm run test:db`: 91/91 integration tests pass (134/134 at PR C) (RLS, sessions, storage, data integrity).
 - Browser checks (ad-hoc Puppeteer scripts, see Tech debt): full planner and guest walkthrough
   17/17; axe accessibility audit clean on 26 phone and desktop screens; production build
   under `vercel.json` headers passed 8/8 with no CSP violations; live site loads as a guest.
@@ -68,8 +68,10 @@ Done at go-live: env vars set in Vercel Production; Supabase public sign-ups dis
 Open the app to other couples (PLAN.md §13). **Phase 1 is done** (PR #24 and the lockdown PR):
 guests read only through `guest_view()`, tables are planner-only, photos are private with
 signed URLs (`media` Edge Function). Your wedding (slug `main`) is Public, amounts mode. The
-visibility/share-link/percentage settings have no UI yet (Phase 3). **Next: Phase 2** (Google
-and email sign-in, one-step wedding creation); it starts with user steps in Google Cloud. The key rotation and Supabase Pro upgrade are deferred
+visibility/share-link/percentage settings have no UI yet (Phase 3). **Phase 2 in progress:** step 10 is done
+(migration `20261020180000_create_my_wedding.sql`, pushed; `src/domain/slug.ts`). **Next: PR D,
+Google sign-in**, which needs the user's Google Cloud OAuth client and the Supabase Google
+provider and URL configuration (steps were given in chat on 2026-10-20; ask for status). The key rotation and Supabase Pro upgrade are deferred
 to the launch checklist (Phase 5), before public sign-ups are enabled.
 
 ## Unresolved decisions
