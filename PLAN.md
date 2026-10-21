@@ -263,16 +263,20 @@ don't see actual costs or payment notes.
    links; search never returns private; percentage mode returns no cents; signed URLs refused
    without access; one planner can't read or write another wedding.
 
-**Phase 2: Google and email sign-in, one-step wedding creation.**
+**Phase 2: Google and email sign-in, one-step wedding creation.** Order: step 10 first (PR
+C, no user steps), then Google (D), email (E), and moving `main` plus retiring the password
+login (F). The password login keeps working until F. Public sign-ups stay disabled until
+launch, so F pre-creates your Gmail as an auth user and Google sign-in links to it by email.
 
 8. Google Cloud OAuth client and consent screen (`email profile` only; privacy link); enable
    the Google provider in Supabase; redirect URL allowlist (www, Vercel domains, localhost).
    _User steps provided when we get here._
 9. Email sign-in link/code: Resend account, DNS records in Cloudflare, Supabase custom SMTP,
    Turnstile on the email form. _User steps provided when we get here._
-10. `create_my_wedding(name, date)` (security definer): one per user, unique slug, inserts the
+10. ✅ `create_my_wedding(name, date)` (security definer): one per user, unique slug, inserts the
     wedding and the `planners` row in one transaction. Clients still can't insert into
-    `weddings` or `planners`.
+    `weddings` or `planners`. Slug = `slugify(name)` (SQL, mirrors `src/domain/slug.ts`), then
+    `-2`, `-3`… if taken; uniqueness rests on the `weddings.slug` unique constraint.
 11. Sign-in screen and first-run "Create your wedding" screen, with Terms/Privacy consent line.
 12. Move `main` to your Google account (one-off script), then retire the shared account,
     `VITE_PLANNER_EMAIL`, `planner:setup`, Change password and the login throttle UI.
