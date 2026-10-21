@@ -68,7 +68,9 @@ and `SUPABASE_SECRET_KEY` (used by `test:db`, `planner:setup`, `seed:dev`). Temp
   protection, no session time-box.
 - Authorization: RLS on every table (`is_planner()` for writes, public `select` of active rows),
   hard DELETE revoked, storage policies by wedding-id path prefix. Test with `npm run test:db`.
-- Storage: public bucket `wedding-media`, 10 MB, image types only (enforced by the bucket).
+- Storage: private bucket `wedding-media` (since 2026-10-20), 10 MB, image types only (enforced
+  by the bucket). Photos load through signed URLs; old public URLs may still be served from the
+  CDN cache for photos fetched before the switch.
 - Edge Function `chat` (`supabase/functions/chat/`): the in-app AI assistant. Deploy with
   `supabase functions deploy chat` **after user approval** (it is live for the real wedding
   immediately); it does not ship with Vercel. Needs the secret `ANTHROPIC_API_KEY`

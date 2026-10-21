@@ -62,7 +62,7 @@ describe('activity photos', () => {
     const response = await fetch(urls[saved.storagePath]!)
     expect(response.status).toBe(200)
 
-    const snapshot = await guest.loadSnapshot(f.weddingSlug)
+    const snapshot = await guest.loadGuestView(f.weddingSlug, f.weddingShareKey)
     expect(snapshot.activityImages.some((i) => i.id === saved.id)).toBe(true)
   })
 
@@ -95,7 +95,7 @@ describe('activity photos', () => {
       image: image(),
     })
     await planner.softDelete('image', saved.id)
-    const guestView = await guest.loadSnapshot(f.weddingSlug)
+    const guestView = await guest.loadGuestView(f.weddingSlug, f.weddingShareKey)
     expect(guestView.activityImages.some((i) => i.id === saved.id)).toBe(false)
     expect(await objectExists(saved.storagePath)).toBe(true)
     await planner.restore('image', saved.id)

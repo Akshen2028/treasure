@@ -32,7 +32,7 @@ describe('deleting custom categories', () => {
     const definition = await planner.createCategoryDefinition({ weddingId: f.weddingId, name })
     await planner.softDelete('definition', definition.id)
 
-    const guestView = await guest.loadSnapshot(f.weddingSlug)
+    const guestView = await guest.loadGuestView(f.weddingSlug, f.weddingShareKey)
     expect(guestView.categoryDefinitions.some((d) => d.id === definition.id)).toBe(false)
     const plannerView = await planner.loadSnapshot(f.weddingSlug)
     expect(
