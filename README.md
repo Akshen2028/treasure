@@ -30,7 +30,6 @@ npm run dev
 | `npm run check`             | Typecheck, lint, format check and tests        |
 | `npm run test:db`           | Integration tests against Supabase             |
 | `npm run db:types`          | Regenerate database TypeScript types           |
-| `npm run planner:setup`     | Create/reset the planner account               |
 | `npm run seed:dev -- --yes` | Replace the wedding's content with sample data |
 
 ## Installing on a phone
@@ -72,11 +71,10 @@ After a migration, run `npm run db:types`.
 `planners` table) can insert and update their wedding; nobody can hard-delete through the API.
 Deletion is soft (`deleted_at`).
 
-**Planner access:** run `npm run planner:setup` in a terminal. It creates the wedding (slug
-`main`) if needed, creates the planner account or resets its password through hidden prompts,
-and grants planner rights. It uses the secret key from `.env.test.local` and never runs in the
-browser. The app signs in with `VITE_PLANNER_EMAIL` + the password; Supabase Auth checks it
-and the session stays until the planner locks the device.
+**Planner access:** there are no passwords. Planners sign in with Google or a 6-digit code sent
+by email (Supabase Auth, behind a Cloudflare Turnstile bot check); the session stays until the
+planner locks the device. A planner is any account listed in `planners` for the wedding. Public
+sign-ups are off, so only existing accounts can sign in.
 
 **Sample data:** `npm run seed:dev -- --yes` permanently clears the wedding's events,
 categories, activities, payments, photos and custom categories, then adds a sample multi-day

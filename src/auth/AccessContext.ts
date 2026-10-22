@@ -17,11 +17,12 @@ export type AccessContextValue = {
   mode: AccessMode
   isPlanner: boolean
   continueAsGuest: () => void
-  /** `captchaToken` comes from the bot check (`useBotCheck`) when it is configured. */
-  signInAsPlanner: (password: string, captchaToken?: string) => Promise<SignInResult>
   /** Redirects to Google; on success the page unloads and the result arrives after return. */
   signInWithGoogle: () => Promise<SignInResult>
-  /** Emails a sign-in code. Succeeds for unknown addresses too, without sending anything. */
+  /**
+   * Emails a sign-in code. Succeeds for unknown addresses too, without sending anything.
+   * `captchaToken` comes from the bot check (`useBotCheck`) when it is configured.
+   */
   sendEmailCode: (email: string, captchaToken?: string) => Promise<SignInResult>
   /** Signs in with the emailed code, then confirms planner access like the other methods. */
   verifyEmailCode: (email: string, code: string) => Promise<SignInResult>

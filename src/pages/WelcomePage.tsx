@@ -1,4 +1,4 @@
-import { ChevronLeft, Eye, KeyRound, Mail } from 'lucide-react'
+import { ChevronLeft, Eye, Mail } from 'lucide-react'
 import { useState } from 'react'
 import { Navigate } from 'react-router'
 
@@ -6,7 +6,6 @@ import { paths } from '@/app/paths'
 import { useAccess } from '@/auth/AccessContext'
 import { EmailSignInForm } from '@/components/auth/EmailSignInForm'
 import { GoogleSignInButton } from '@/components/auth/GoogleSignInButton'
-import { PlannerLoginForm } from '@/components/auth/PlannerLoginForm'
 import { Wordmark } from '@/components/brand/Wordmark'
 import { SplashScreen } from '@/components/feedback/SplashScreen'
 import { Button } from '@/components/ui/button'
@@ -14,7 +13,7 @@ import { useDocumentTitle } from '@/hooks/useDocumentTitle'
 
 export function WelcomePage() {
   const { status, mode, continueAsGuest } = useAccess()
-  const [form, setForm] = useState<'none' | 'email' | 'password'>('none')
+  const [showEmailForm, setShowEmailForm] = useState(false)
   useDocumentTitle('Welcome')
 
   if (status === 'initializing') return <SplashScreen />
@@ -38,18 +37,14 @@ export function WelcomePage() {
         </p>
 
         <div className="mt-12 w-full">
-          {form !== 'none' ? (
+          {showEmailForm ? (
             <div className="flex animate-in flex-col gap-2 duration-300 fade-in slide-in-from-bottom-1">
               {/* On success the access mode changes and this page redirects home. */}
-              {form === 'email' ? (
-                <EmailSignInForm onSuccess={() => {}} focusOnMount />
-              ) : (
-                <PlannerLoginForm onSuccess={() => {}} />
-              )}
+              <EmailSignInForm onSuccess={() => {}} focusOnMount />
               <Button
                 variant="ghost"
                 className="text-muted-foreground"
-                onClick={() => setForm('none')}
+                onClick={() => setShowEmailForm(false)}
               >
                 <ChevronLeft data-icon="inline-start" />
                 Back
@@ -62,18 +57,9 @@ export function WelcomePage() {
                 Continue as Guest
               </Button>
               <GoogleSignInButton />
-              <Button size="lg" variant="outline" onClick={() => setForm('email')}>
+              <Button size="lg" variant="outline" onClick={() => setShowEmailForm(true)}>
                 <Mail data-icon="inline-start" />
                 Continue with Email
-              </Button>
-              <Button
-                size="lg"
-                variant="ghost"
-                className="text-muted-foreground"
-                onClick={() => setForm('password')}
-              >
-                <KeyRound data-icon="inline-start" />
-                Enter Planner Password
               </Button>
             </div>
           )}

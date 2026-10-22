@@ -2,7 +2,6 @@ import type { AuthError } from '@supabase/supabase-js'
 import { type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { toast } from 'sonner'
 
-import { env } from '@/lib/env'
 import { supabase } from '@/lib/supabase'
 
 import {
@@ -11,13 +10,6 @@ import {
   type AccessMode,
   type SignInResult,
 } from './AccessContext'
-import {
-  loadThrottle,
-  recordFailure,
-  recordSuccess,
-  remainingLockMs,
-  saveThrottle,
-} from './loginThrottle'
 import { classifyOAuthError, parseOAuthCallback, stripOAuthParams } from './oauthCallback'
 import { verifyPlanner } from './plannerVerification'
 import {
@@ -223,32 +215,6 @@ export function AccessProvider({ children }: { children: ReactNode }) {
     [applyVerification],
   )
 
-  const signInAsPlanner = useCallback(
-    async (password: string, captchaToken?: string): Promise<SignInResult> => {
-      const email = env.plannerEmail
-      if (!email) return { ok: false, reason: 'not-configured' }
-
-      const storage = safeStorage()
-      const throttle = loadThrottle(storage)
-      const wait = remainingLockMs(throttle, Date.now())
-      if (wait > 0) return { ok: false, reason: 'throttled', retryInMs: wait }
-
-      return signInAndVerify(async () => {
-        const response = await supabase.auth.signInWithPassword({
-          email,
-          password,
-          options: { captchaToken },
-        })
-        if (!response.error) saveThrottle(storage, recordSuccess())
-        else if (classifySignInError(response.error).reason === 'wrong-password') {
-          saveThrottle(storage, recordFailure(throttle, Date.now()))
-        }
-        return response
-      })
-    },
-    [signInAndVerify],
-  )
-
   const sendEmailCode = useCallback(
     async (email: string, captchaToken?: string): Promise<SignInResult> => {
       const { error } = await supabase.auth.signInWithOtp({
@@ -307,23 +273,13 @@ export function AccessProvider({ children }: { children: ReactNode }) {
       mode,
       isPlanner: mode === 'planner',
       continueAsGuest,
-      signInAsPlanner,
       signInWithGoogle,
       sendEmailCode,
       verifyEmailCode,
       lock: () => endSession('local'),
       signOutEverywhere: () => endSession('global'),
     }),
-    [
-      status,
-      mode,
-      continueAsGuest,
-      signInAsPlanner,
-      signInWithGoogle,
-      sendEmailCode,
-      verifyEmailCode,
-      endSession,
-    ],
+    [status, mode, continueAsGuest, signInWithGoogle, sendEmailCode, verifyEmailCode, endSession],
   )
 
   return <AccessContext value={value}>{children}</AccessContext>

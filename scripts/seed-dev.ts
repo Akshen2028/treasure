@@ -459,7 +459,7 @@ async function main() {
     .eq('slug', slug)
     .maybeSingle()
   if (error) fail(`Finding the wedding: ${error.message}`)
-  if (!wedding) fail(`No wedding with slug "${slug}". Run npm run planner:setup first.`)
+  if (!wedding) fail(`No wedding with slug "${slug}". Create it in the app first.`)
 
   console.log(`\nWedding: ${wedding.name}`)
   await clearWedding(wedding.id)
