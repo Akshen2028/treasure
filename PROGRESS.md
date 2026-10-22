@@ -1,6 +1,6 @@
 # Progress and handoff
 
-_Last updated: 2026-10-20. Keep this short and current; it is not a changelog (PRs are)._
+_Last updated: 2026-10-21. Keep this short and current; it is not a changelog (PRs are)._
 
 ## Status
 
@@ -69,9 +69,14 @@ Open the app to other couples (PLAN.md §13). **Phase 1 is done** (PR #24 and th
 guests read only through `guest_view()`, tables are planner-only, photos are private with
 signed URLs (`media` Edge Function). Your wedding (slug `main`) is Public, amounts mode. The
 visibility/share-link/percentage settings have no UI yet (Phase 3). **Phase 2 in progress:** step 10 is done
-(migration `20261020180000_create_my_wedding.sql`, pushed; `src/domain/slug.ts`). **Next: PR D,
-Google sign-in**, which needs the user's Google Cloud OAuth client and the Supabase Google
-provider and URL configuration (steps were given in chat on 2026-10-20; ask for status). The key rotation and Supabase Pro upgrade are deferred
+(migration `20261020180000_create_my_wedding.sql`, pushed; `src/domain/slug.ts`). Step 8 is
+configured (2026-10-21): Google Cloud project `mywedonomics` (consent screen in Testing; test
+users only), Supabase Google provider on, Site URL `https://www.mywedonomics.com`, redirect
+allowlist www / `wedonomics.vercel.app` / `localhost:5173`. **PR D (branch
+`phase2/google-sign-in`)**: "Continue with Google" on Welcome and the planner dialog; PKCE
+redirect back to the same page, completed once in `AccessProvider` (`src/auth/oauthCallback.ts`).
+Sign-ups stay disabled, so only an existing auth user's Gmail (the planner account's) can sign
+in. LAN phone testing can't use Google (not in the allowlist). **Next: PR E, email sign-in.** The key rotation and Supabase Pro upgrade are deferred
 to the launch checklist (Phase 5), before public sign-ups are enabled.
 
 ## Unresolved decisions

@@ -18,6 +18,8 @@ export type AccessContextValue = {
   isPlanner: boolean
   continueAsGuest: () => void
   signInAsPlanner: (password: string) => Promise<SignInResult>
+  /** Redirects to Google; on success the page unloads and the result arrives after return. */
+  signInWithGoogle: () => Promise<SignInResult>
   /** Ends the planner session on this device only. */
   lock: () => Promise<void>
   /** Ends the planner session on every device. */
