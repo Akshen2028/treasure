@@ -4,6 +4,7 @@ import { Navigate } from 'react-router'
 
 import { paths } from '@/app/paths'
 import { useAccess } from '@/auth/AccessContext'
+import { GoogleSignInButton } from '@/components/auth/GoogleSignInButton'
 import { PlannerLoginForm } from '@/components/auth/PlannerLoginForm'
 import { Wordmark } from '@/components/brand/Wordmark'
 import { SplashScreen } from '@/components/feedback/SplashScreen'
@@ -54,7 +55,13 @@ export function WelcomePage() {
                 <Eye data-icon="inline-start" />
                 Continue as Guest
               </Button>
-              <Button size="lg" variant="outline" onClick={() => setShowPlannerForm(true)}>
+              <GoogleSignInButton />
+              <Button
+                size="lg"
+                variant="ghost"
+                className="text-muted-foreground"
+                onClick={() => setShowPlannerForm(true)}
+              >
                 <KeyRound data-icon="inline-start" />
                 Enter Planner Password
               </Button>

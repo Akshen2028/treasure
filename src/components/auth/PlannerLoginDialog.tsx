@@ -9,6 +9,7 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog'
 
+import { GoogleSignInButton } from './GoogleSignInButton'
 import { PlannerLoginForm } from './PlannerLoginForm'
 
 /** Planner sign-in in a dialog, for use anywhere inside the app. */
@@ -21,9 +22,15 @@ export function PlannerLoginDialog({ trigger }: { trigger: ReactNode }) {
         <DialogHeader>
           <DialogTitle>Planner access</DialogTitle>
           <DialogDescription>
-            Enter the planner password to add and edit wedding details.
+            Sign in with Google or the planner password to add and edit wedding details.
           </DialogDescription>
         </DialogHeader>
+        <GoogleSignInButton />
+        <div className="flex items-center gap-3 text-xs text-muted-foreground" aria-hidden="true">
+          <span className="h-px flex-1 bg-border" />
+          or
+          <span className="h-px flex-1 bg-border" />
+        </div>
         <PlannerLoginForm onSuccess={() => setOpen(false)} />
       </DialogContent>
     </Dialog>
