@@ -22,7 +22,8 @@ Auth, Storage). Node 24 via nvm (`.nvmrc`); prefix shell commands with
   TanStack queries, optimistic `useSnapshotMutation`, soft delete/restore hooks.
 - `src/features/<area>/`: feature UI, forms, mutations. `src/pages/`: one component per screen.
 - `src/components/`: `ui/` (shadcn, owned), `layout/`, `feedback/`, `forms/`, `budget/`, `auth/`.
-- `src/auth/`: AccessProvider (guest/planner, lock, sign-out everywhere), login throttle.
+- `src/auth/`: AccessProvider (guest/planner, Google and email-code sign-in, lock, sign-out
+  everywhere).
 - `supabase/migrations/`: hand-written SQL (schema, RLS, storage). `tests/integration/`:
   security and data tests against the remote DB. `scripts/`: planner setup, sample-data seed.
 

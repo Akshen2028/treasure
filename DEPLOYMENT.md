@@ -34,16 +34,15 @@ and in Vercel.
 
 Set in Vercel → Settings → Environments → Production (and locally in `.env.local`):
 
-| Name                            | Purpose                                          |
-| ------------------------------- | ------------------------------------------------ |
-| `VITE_SUPABASE_URL`             | Supabase project URL                             |
-| `VITE_SUPABASE_PUBLISHABLE_KEY` | Publishable (anon) key, safe in the browser      |
-| `VITE_PLANNER_EMAIL`            | Planner account email (identifier, not a secret) |
-| `VITE_WEDDING_SLUG`             | Which wedding to show (`main`)                   |
-| `VITE_TURNSTILE_SITE_KEY`       | Cloudflare Turnstile site key (public)           |
+| Name                            | Purpose                                     |
+| ------------------------------- | ------------------------------------------- |
+| `VITE_SUPABASE_URL`             | Supabase project URL                        |
+| `VITE_SUPABASE_PUBLISHABLE_KEY` | Publishable (anon) key, safe in the browser |
+| `VITE_WEDDING_SLUG`             | Which wedding to show (`main`)              |
+| `VITE_TURNSTILE_SITE_KEY`       | Cloudflare Turnstile site key (public)      |
 
 Local-only, never on Vercel: `.env.test.local` with `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY`
-and `SUPABASE_SECRET_KEY` (used by `test:db`, `planner:setup`, `seed:dev`). Templates:
+and `SUPABASE_SECRET_KEY` (used by `test:db` and `seed:dev`). Templates:
 `.env.example`, `.env.test.example`. Changing a `VITE_*` value requires a redeploy.
 
 ## Custom domain
@@ -64,7 +63,7 @@ and `SUPABASE_SECRET_KEY` (used by `test:db`, `planner:setup`, `seed:dev`). Temp
 - Migrations: `supabase/migrations/*.sql`, hand-written (no Docker, so no `db diff`). Apply with
   `supabase db push --dry-run`, then `supabase db push` **after user approval**; then
   `npm run db:types`. The CLI is linked (`supabase link`) on the developer machine.
-- Auth: Google, a 6-digit email code, or the shared planner password (until PR F);
+- Auth: Google or a 6-digit email code; no passwords in the app (since PR F);
   **public sign-ups disabled** (codes are requested with `shouldCreateUser: false`). Site URL =
   production domain. Free tier: no leaked-password protection, no session time-box.
 - Email: custom SMTP through Resend (domain `mywedonomics.com`, DNS records in Cloudflare).
@@ -72,8 +71,9 @@ and `SUPABASE_SECRET_KEY` (used by `test:db`, `planner:setup`, `seed:dev`). Temp
   installed app.
 - Bot check: Cloudflare Turnstile widget (hostnames: production, Vercel domains, `localhost`).
   Site key in `VITE_TURNSTILE_SITE_KEY`; secret key only in Supabase → Authentication → Attack
-  Protection (captcha on). Supabase then requires a token on password sign-in and code requests
-  (not on Google or code verification). The CSP allows `https://challenges.cloudflare.com`
+  Protection (captcha on). Supabase then requires a token on code requests and password sign-in
+  (not on Google or code verification). Code verifications are rate-limited per IP (about 30
+  per 5 minutes); one `test:db` run uses most of that, so wait 5 minutes between runs. The CSP allows `https://challenges.cloudflare.com`
   (script and frame). LAN phone testing can't pass the check (IP hosts aren't allowed).
 - Authorization: RLS on every table (`is_planner()` for writes, public `select` of active rows),
   hard DELETE revoked, storage policies by wedding-id path prefix. Test with `npm run test:db`.

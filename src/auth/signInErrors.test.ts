@@ -8,12 +8,6 @@ import {
 } from './signInErrors'
 
 describe('classifySignInError', () => {
-  it('treats invalid credentials as a wrong password', () => {
-    expect(classifySignInError({ status: 400, code: 'invalid_credentials' })).toEqual({
-      reason: 'wrong-password',
-    })
-  })
-
   it('recognises server-side rate limiting', () => {
     expect(classifySignInError({ status: 429 })).toEqual({ reason: 'rate-limited' })
     expect(classifySignInError({ status: 400, code: 'over_request_rate_limit' })).toEqual({
@@ -21,7 +15,7 @@ describe('classifySignInError', () => {
     })
   })
 
-  it('recognises a failed bot check before treating a 400 as a wrong password', () => {
+  it('recognises a failed bot check', () => {
     expect(classifySignInError({ status: 400, code: 'captcha_failed' })).toEqual({
       reason: 'bot-check',
     })
@@ -77,15 +71,8 @@ describe('isUnknownAccountError', () => {
 })
 
 describe('signInFailureMessage', () => {
-  it('formats throttle waits in seconds and minutes', () => {
-    expect(signInFailureMessage({ reason: 'throttled', retryInMs: 4_200 })).toContain('5 seconds')
-    expect(signInFailureMessage({ reason: 'throttled', retryInMs: 1_000 })).toContain('1 second ')
-    expect(signInFailureMessage({ reason: 'throttled', retryInMs: 90_000 })).toContain('2 minutes')
-  })
-
   it('never says whether an account exists', () => {
-    for (const reason of ['wrong-password', 'wrong-code'] as const) {
-      expect(signInFailureMessage({ reason }).toLowerCase()).not.toMatch(/account|user/)
-    }
+    const message = signInFailureMessage({ reason: 'wrong-code' })
+    expect(message.toLowerCase()).not.toMatch(/account|user/)
   })
 })

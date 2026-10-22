@@ -16,11 +16,6 @@ export const env = {
     import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
   ),
   /**
-   * Identifies the shared planner account; the password is checked by Supabase Auth.
-   * Optional so guests still work if it is missing; planner sign-in reports it instead.
-   */
-  plannerEmail: import.meta.env.VITE_PLANNER_EMAIL || null,
-  /**
    * Cloudflare Turnstile site key for the bot check on sign-in forms (public by design).
    * Without it no check is shown; Supabase then refuses sign-ins if its captcha is on.
    */

@@ -48,14 +48,12 @@ Wedding → Events → Categories → Activities → Payments (+ activity links 
 
 - **Guest:** "Continue as Guest", no password. Reads only through `guest_view()` (§13); the
   publishable key has no table access. "Entered" is only a remembered UI preference, not a credential.
-- **Planner:** one shared Supabase Auth account (email in `VITE_PLANNER_EMAIL`; the password is
-  never in the frontend). Rows in `planners` link users to weddings; RLS writes use
-  `is_planner(wedding_id)` (security definer). Created or reset only via `npm run planner:setup`
-  (terminal, secret key, hidden prompt).
-- Sign-in errors don't reveal whether the account exists. A client-side throttle doubles the
-  wait after repeated failures (max 5 min); Supabase's server rate limit is the real guard.
-- Settings: **Lock** (sign out this device), **Sign out everywhere** (global), **Change
-  password** (re-verifies the current one, then signs out other devices).
+- **Planner:** a Supabase Auth account that signs in with Google or an emailed 6-digit code; no
+  passwords (§13, since PR F). Rows in `planners` link users to weddings; RLS writes use
+  `is_planner(wedding_id)` (security definer).
+- Sign-in errors don't reveal whether the account exists (an unknown email looks like a sent
+  code). Supabase's rate limits and the Turnstile bot check guard code requests.
+- Settings: **Lock** (sign out this device), **Sign out everywhere** (global).
 - Hard DELETE is revoked for API roles; deletes are `deleted_at` updates. Public sign-ups are
   disabled in Supabase.
 - Covered by `tests/integration/` (guests can't write, planners of one wedding can't touch
@@ -281,8 +279,9 @@ launch, so F pre-creates your Gmail as an auth user and Google sign-in links to 
     `weddings` or `planners`. Slug = `slugify(name)` (SQL, mirrors `src/domain/slug.ts`), then
     `-2`, `-3`… if taken; uniqueness rests on the `weddings.slug` unique constraint.
 11. Sign-in screen and first-run "Create your wedding" screen, with Terms/Privacy consent line.
-12. Move `main` to your Google account (one-off script), then retire the shared account,
-    `VITE_PLANNER_EMAIL`, `planner:setup`, Change password and the login throttle UI.
+12. ✅ (PR F) No move was needed: `main`'s planner account is already your Gmail, linked to
+    Google. Retired the password login, `VITE_PLANNER_EMAIL`, `planner:setup`, Change password
+    and the login throttle.
 
 **Phase 3: Multi-wedding app.**
 

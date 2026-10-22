@@ -41,7 +41,10 @@ _Last updated: 2026-10-21. Keep this short and current; it is not a changelog (P
    `npm run seed:dev -- --clear-only --yes` only after explicit approval (destructive).
 3. Confirm Supabase Auth → Site URL is `https://www.mywedonomics.com` (was the `vercel.app`
    address at go-live).
-4. Free Supabase plan (accepted): the project pauses after 7 idle days; there are no automatic
+4. The planner account (`wonderlustasaj@gmail.com`) still has its old password in Supabase
+   (unused by the app since PR F). User chose to keep it for now; to retire it, set a long
+   random password via the admin API (Google and email codes are unaffected).
+5. Free Supabase plan (accepted): the project pauses after 7 idle days; there are no automatic
    backups.
 
 Done at go-live: env vars set in Vercel Production; Supabase public sign-ups disabled; custom domain connected.
@@ -65,27 +68,24 @@ Done at go-live: env vars set in Vercel Production; Supabase public sign-ups dis
 
 ## Next recommended task
 
-Open the app to other couples (PLAN.md §13). **Phase 1 is done** (PR #24 and the lockdown PR):
-guests read only through `guest_view()`, tables are planner-only, photos are private with
-signed URLs (`media` Edge Function). Your wedding (slug `main`) is Public, amounts mode. The
-visibility/share-link/percentage settings have no UI yet (Phase 3). **Phase 2 in progress:** step 10 is done
-(migration `20261020180000_create_my_wedding.sql`, pushed; `src/domain/slug.ts`). Step 8 is
-configured (2026-10-21): Google Cloud project `mywedonomics` (consent screen in Testing; test
-users only), Supabase Google provider on, Site URL `https://www.mywedonomics.com`, redirect
-allowlist www / `wedonomics.vercel.app` / `localhost:5173`. **PR D (branch
-`phase2/google-sign-in`)**: "Continue with Google" on Welcome and the planner dialog; PKCE
-redirect back to the same page, completed once in `AccessProvider` (`src/auth/oauthCallback.ts`).
-Sign-ups stay disabled, so only an existing auth user's Gmail (the planner account's) can sign
-in. LAN phone testing can't use Google (not in the allowlist). **PR E (branch `phase2/email-sign-in`)**: "Continue with Email" (6-digit code) on
-Welcome and the planner dialog; Cloudflare Turnstile on the email, password and Change password
-forms; test sign-in via admin-generated codes. Resend (domain verified, SMTP in Supabase,
-sender `no-reply@mywedonomics.com`), code-only email template and Turnstile site key (local and
-Vercel) are set up; email sign-in verified locally 2026-10-22. Only existing accounts get codes
-(the one real account is the planner's Gmail). **After merge:** turn on captcha in Supabase
-(Attack Protection → Turnstile secret), then `npm run test:db` (the bot-check test needs it)
-and a live sign-in check. **Next after E: PR F**
-(move `main` to your Google account, retire the password login). The key rotation and Supabase Pro upgrade are deferred
-to the launch checklist (Phase 5), before public sign-ups are enabled.
+Open the app to other couples (PLAN.md §13). **Phase 1 is done**: guests read only through
+`guest_view()`, tables are planner-only, photos are private with signed URLs (`media` Edge
+Function). Your wedding (slug `main`) is Public, amounts mode; visibility/share-link/percentage
+settings have no UI yet (Phase 3).
+
+**Phase 2 (sign-in), done so far:** step 10 `create_my_wedding()` (PR C, migration pushed);
+Google sign-in (PR D; Google Cloud project `mywedonomics`, consent screen in Testing); email
+6-digit code sign-in with a Cloudflare Turnstile bot check (PR E, #28; Resend SMTP from
+`no-reply@mywedonomics.com`, code-only email template, Supabase captcha on since 2026-10-22).
+**PR F (branch `phase2/retire-password`)** removes the password login, Change password, the
+login throttle, `VITE_PLANNER_EMAIL` and `planner:setup`. No move was needed: `main`'s only
+planner is `wonderlustasaj@gmail.com`, linked to Google and email. Sign-ups stay disabled, so
+only that account can sign in. LAN phone testing can't sign in (Google allowlist and Turnstile
+reject IP hosts).
+
+**Next: step 11**, the first-run "Create your wedding" screen (calls `create_my_wedding`) with the
+Terms/Privacy consent line. The key rotation and Supabase Pro upgrade are deferred to the launch
+checklist (Phase 5), before public sign-ups are enabled.
 
 ## Unresolved decisions
 

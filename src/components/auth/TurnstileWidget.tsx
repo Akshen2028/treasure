@@ -1,8 +1,8 @@
 import { useEffect, useRef } from 'react'
 
 /**
- * Cloudflare Turnstile, the bot check Supabase Auth requires on password and email-code
- * sign-ins once its captcha protection is on. Usually invisible; it shows a checkbox only when
+ * Cloudflare Turnstile, the bot check Supabase Auth requires before emailing a sign-in code
+ * once its captcha protection is on. Usually invisible; it shows a checkbox only when
  * Cloudflare is unsure. The script loads on first use, so guests never download it.
  */
 const SCRIPT_URL = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit'

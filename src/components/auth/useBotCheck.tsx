@@ -17,7 +17,7 @@ export type BotCheck = {
 }
 
 /**
- * The bot check Supabase Auth requires on password and email-code sign-ins once its captcha
+ * The bot check Supabase Auth requires before emailing a sign-in code once its captcha
  * protection is on. Without a site key configured, forms work without it.
  */
 export function useBotCheck(): BotCheck {

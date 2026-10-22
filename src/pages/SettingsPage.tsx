@@ -19,7 +19,6 @@ import { WeddingDataBoundary } from '@/components/feedback/WeddingDataBoundary'
 import { DetailHeader } from '@/components/layout/DetailHeader'
 import { PageContainer } from '@/components/layout/PageContainer'
 import { Button } from '@/components/ui/button'
-import { ChangePasswordButton } from '@/features/settings/ChangePassword'
 import { BudgetModeSetting, WeddingDetailsForm } from '@/features/settings/WeddingSettings'
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
@@ -160,15 +159,6 @@ export function SettingsPage() {
                     label="Export for AI"
                     hint="Download the wedding as JSON or Markdown"
                   />
-                </Section>
-
-                <Section title="Security">
-                  <div className="flex flex-col gap-3 p-5">
-                    <p className="text-sm text-muted-foreground">
-                      One shared password unlocks planner access on any device.
-                    </p>
-                    <ChangePasswordButton />
-                  </div>
                 </Section>
               </>
             )}

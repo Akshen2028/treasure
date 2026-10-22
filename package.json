@@ -19,7 +19,6 @@
     "check": "npm run typecheck && npm run lint && npm run format:check && npm run test",
     "test:db": "vitest run --config vitest.integration.config.ts",
     "db:types": "supabase gen types typescript --linked --schema public > src/lib/database.types.ts && prettier --write src/lib/database.types.ts",
-    "planner:setup": "node --env-file-if-exists=.env.local --env-file=.env.test.local scripts/planner-setup.ts",
     "seed:dev": "node --env-file-if-exists=.env.local --env-file=.env.test.local scripts/seed-dev.ts"
   },
   "dependencies": {
