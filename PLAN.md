@@ -271,8 +271,11 @@ launch, so F pre-creates your Gmail as an auth user and Google sign-in links to 
 8. Google Cloud OAuth client and consent screen (`email profile` only; privacy link); enable
    the Google provider in Supabase; redirect URL allowlist (www, Vercel domains, localhost).
    _User steps provided when we get here._
-9. Email sign-in link/code: Resend account, DNS records in Cloudflare, Supabase custom SMTP,
-   Turnstile on the email form. _User steps provided when we get here._
+9. Email sign-in (PR E, decided 2026-10-21): a **6-digit code only** (the email has no link,
+   since links open outside the installed app). Resend account, DNS records in Cloudflare,
+   Supabase custom SMTP. **Turnstile** on every form Supabase checks once captcha is on: email
+   code, planner password and Change password (`useBotCheck`). Unknown emails look like a sent
+   code. Integration tests sign in with admin-generated codes (no bot check needed).
 10. ✅ `create_my_wedding(name, date)` (security definer): one per user, unique slug, inserts the
     wedding and the `planners` row in one transaction. Clients still can't insert into
     `weddings` or `planners`. Slug = `slugify(name)` (SQL, mirrors `src/domain/slug.ts`), then

@@ -1,3 +1,4 @@
+import type { AuthError } from '@supabase/supabase-js'
 import { type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { toast } from 'sonner'
 
@@ -19,7 +20,12 @@ import {
 } from './loginThrottle'
 import { classifyOAuthError, parseOAuthCallback, stripOAuthParams } from './oauthCallback'
 import { verifyPlanner } from './plannerVerification'
-import { classifySignInError, signInFailureMessage } from './signInErrors'
+import {
+  classifyEmailCodeError,
+  classifySignInError,
+  isUnknownAccountError,
+  signInFailureMessage,
+} from './signInErrors'
 
 /**
  * Remembers that this browser has been past the welcome screen. It is a UI preference,
@@ -197,28 +203,13 @@ export function AccessProvider({ children }: { children: ReactNode }) {
     setMode('guest')
   }, [])
 
-  const signInAsPlanner = useCallback(
-    async (password: string): Promise<SignInResult> => {
-      const email = env.plannerEmail
-      if (!email) return { ok: false, reason: 'not-configured' }
-
-      const storage = safeStorage()
-      const throttle = loadThrottle(storage)
-      const wait = remainingLockMs(throttle, Date.now())
-      if (wait > 0) return { ok: false, reason: 'throttled', retryInMs: wait }
-
+  /** Runs a sign-in request, then confirms with the server that the account plans this wedding. */
+  const signInAndVerify = useCallback(
+    async (request: () => Promise<{ error: AuthError | null }>): Promise<SignInResult> => {
       signingIn.current = true
       try {
-        const { error } = await supabase.auth.signInWithPassword({ email, password })
-        if (error) {
-          const failure = classifySignInError(error)
-          if (failure.reason === 'wrong-password') {
-            saveThrottle(storage, recordFailure(throttle, Date.now()))
-          }
-          return { ok: false, ...failure }
-        }
-
-        saveThrottle(storage, recordSuccess())
+        const { error } = await request()
+        if (error) return { ok: false, ...classifySignInError(error) }
         const verification = await applyVerification()
         if (verification === 'planner') return { ok: true }
         if (verification === 'unreachable') return { ok: false, reason: 'network' }
@@ -230,6 +221,52 @@ export function AccessProvider({ children }: { children: ReactNode }) {
     // applyVerification is used above; the memo-dependencies rule misreads the async body.
     // oxlint-disable-next-line react/memo-dependencies
     [applyVerification],
+  )
+
+  const signInAsPlanner = useCallback(
+    async (password: string, captchaToken?: string): Promise<SignInResult> => {
+      const email = env.plannerEmail
+      if (!email) return { ok: false, reason: 'not-configured' }
+
+      const storage = safeStorage()
+      const throttle = loadThrottle(storage)
+      const wait = remainingLockMs(throttle, Date.now())
+      if (wait > 0) return { ok: false, reason: 'throttled', retryInMs: wait }
+
+      return signInAndVerify(async () => {
+        const response = await supabase.auth.signInWithPassword({
+          email,
+          password,
+          options: { captchaToken },
+        })
+        if (!response.error) saveThrottle(storage, recordSuccess())
+        else if (classifySignInError(response.error).reason === 'wrong-password') {
+          saveThrottle(storage, recordFailure(throttle, Date.now()))
+        }
+        return response
+      })
+    },
+    [signInAndVerify],
+  )
+
+  const sendEmailCode = useCallback(
+    async (email: string, captchaToken?: string): Promise<SignInResult> => {
+      const { error } = await supabase.auth.signInWithOtp({
+        email,
+        // Accounts are created only through sign-up (closed for now), never by asking for a code.
+        options: { shouldCreateUser: false, captchaToken },
+      })
+      // An unknown address looks the same as a sent code, so the form can't reveal accounts.
+      if (!error || isUnknownAccountError(error)) return { ok: true }
+      return { ok: false, ...classifyEmailCodeError(error) }
+    },
+    [],
+  )
+
+  const verifyEmailCode = useCallback(
+    (email: string, code: string): Promise<SignInResult> =>
+      signInAndVerify(() => supabase.auth.verifyOtp({ email, token: code, type: 'email' })),
+    [signInAndVerify],
   )
 
   const signInWithGoogle = useCallback(async (): Promise<SignInResult> => {
@@ -272,10 +309,21 @@ export function AccessProvider({ children }: { children: ReactNode }) {
       continueAsGuest,
       signInAsPlanner,
       signInWithGoogle,
+      sendEmailCode,
+      verifyEmailCode,
       lock: () => endSession('local'),
       signOutEverywhere: () => endSession('global'),
     }),
-    [status, mode, continueAsGuest, signInAsPlanner, signInWithGoogle, endSession],
+    [
+      status,
+      mode,
+      continueAsGuest,
+      signInAsPlanner,
+      signInWithGoogle,
+      sendEmailCode,
+      verifyEmailCode,
+      endSession,
+    ],
   )
 
   return <AccessContext value={value}>{children}</AccessContext>

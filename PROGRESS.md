@@ -76,7 +76,15 @@ allowlist www / `wedonomics.vercel.app` / `localhost:5173`. **PR D (branch
 `phase2/google-sign-in`)**: "Continue with Google" on Welcome and the planner dialog; PKCE
 redirect back to the same page, completed once in `AccessProvider` (`src/auth/oauthCallback.ts`).
 Sign-ups stay disabled, so only an existing auth user's Gmail (the planner account's) can sign
-in. LAN phone testing can't use Google (not in the allowlist). **Next: PR E, email sign-in.** The key rotation and Supabase Pro upgrade are deferred
+in. LAN phone testing can't use Google (not in the allowlist). **PR E (branch `phase2/email-sign-in`)**: "Continue with Email" (6-digit code) on
+Welcome and the planner dialog; Cloudflare Turnstile on the email, password and Change password
+forms; test sign-in via admin-generated codes. Resend (domain verified, SMTP in Supabase,
+sender `no-reply@mywedonomics.com`), code-only email template and Turnstile site key (local and
+Vercel) are set up; email sign-in verified locally 2026-10-22. Only existing accounts get codes
+(the one real account is the planner's Gmail). **After merge:** turn on captcha in Supabase
+(Attack Protection → Turnstile secret), then `npm run test:db` (the bot-check test needs it)
+and a live sign-in check. **Next after E: PR F**
+(move `main` to your Google account, retire the password login). The key rotation and Supabase Pro upgrade are deferred
 to the launch checklist (Phase 5), before public sign-ups are enabled.
 
 ## Unresolved decisions

@@ -30,7 +30,7 @@ async function newUser(role: string): Promise<{ id: string; client: Client }> {
   })
   if (error || !data.user) throw new Error(`Could not create ${role}: ${error?.message}`)
   userIds.push(data.user.id)
-  return { id: data.user.id, client: await signedInClient(email, password) }
+  return { id: data.user.id, client: await signedInClient(email) }
 }
 
 // "Test …" names give test- slugs, so a crashed run's weddings are swept like other test data.

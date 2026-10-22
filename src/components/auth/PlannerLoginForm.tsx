@@ -9,6 +9,8 @@ import { Label } from '@/components/ui/label'
 import { env } from '@/lib/env'
 import { cn } from '@/lib/utils'
 
+import { useBotCheck } from './useBotCheck'
+
 type PlannerLoginFormProps = {
   onSuccess: () => void
   className?: string
@@ -17,6 +19,7 @@ type PlannerLoginFormProps = {
 /** Password form for the shared planner account. The password is checked by Supabase Auth. */
 export function PlannerLoginForm({ onSuccess, className }: PlannerLoginFormProps) {
   const { signInAsPlanner } = useAccess()
+  const botCheck = useBotCheck()
   const [password, setPassword] = useState('')
   const [visible, setVisible] = useState(false)
   const [submitting, setSubmitting] = useState(false)
@@ -32,10 +35,11 @@ export function PlannerLoginForm({ onSuccess, className }: PlannerLoginFormProps
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    if (!password || submitting) return
+    if (!password || submitting || !botCheck.ready) return
     setSubmitting(true)
     setError(null)
-    const result = await signInAsPlanner(password)
+    const result = await signInAsPlanner(password, botCheck.token)
+    botCheck.reset()
     setSubmitting(false)
     if (result.ok) {
       setPassword('')
@@ -92,11 +96,13 @@ export function PlannerLoginForm({ onSuccess, className }: PlannerLoginFormProps
         </Button>
       </div>
 
+      {botCheck.element}
+
       <p id={errorId} role="alert" aria-live="polite" className="min-h-5 text-sm text-destructive">
         {error}
       </p>
 
-      <Button type="submit" size="lg" disabled={!password || submitting}>
+      <Button type="submit" size="lg" disabled={!password || submitting || !botCheck.ready}>
         {submitting ? (
           <LoaderCircle data-icon="inline-start" className="animate-spin" />
         ) : (

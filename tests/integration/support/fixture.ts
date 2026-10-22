@@ -163,8 +163,8 @@ export async function createFixture(): Promise<Fixture> {
       .then((r) => must(r, 'planner membership')),
     createChain(admin, wedding.id, 'Main'),
     createChain(admin, other.id, 'Other'),
-    signedInClient(planner.email, planner.password),
-    signedInClient(outsider.email, outsider.password),
+    signedInClient(planner.email),
+    signedInClient(outsider.email),
   ])
 
   const fixture: Fixture = {

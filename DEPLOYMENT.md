@@ -40,6 +40,7 @@ Set in Vercel → Settings → Environments → Production (and locally in `.env
 | `VITE_SUPABASE_PUBLISHABLE_KEY` | Publishable (anon) key, safe in the browser      |
 | `VITE_PLANNER_EMAIL`            | Planner account email (identifier, not a secret) |
 | `VITE_WEDDING_SLUG`             | Which wedding to show (`main`)                   |
+| `VITE_TURNSTILE_SITE_KEY`       | Cloudflare Turnstile site key (public)           |
 
 Local-only, never on Vercel: `.env.test.local` with `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY`
 and `SUPABASE_SECRET_KEY` (used by `test:db`, `planner:setup`, `seed:dev`). Templates:
@@ -63,9 +64,17 @@ and `SUPABASE_SECRET_KEY` (used by `test:db`, `planner:setup`, `seed:dev`). Temp
 - Migrations: `supabase/migrations/*.sql`, hand-written (no Docker, so no `db diff`). Apply with
   `supabase db push --dry-run`, then `supabase db push` **after user approval**; then
   `npm run db:types`. The CLI is linked (`supabase link`) on the developer machine.
-- Auth: email/password only; **public sign-ups disabled**; one planner account, managed by
-  `npm run planner:setup`. Site URL = production domain. Free tier: no leaked-password
-  protection, no session time-box.
+- Auth: Google, a 6-digit email code, or the shared planner password (until PR F);
+  **public sign-ups disabled** (codes are requested with `shouldCreateUser: false`). Site URL =
+  production domain. Free tier: no leaked-password protection, no session time-box.
+- Email: custom SMTP through Resend (domain `mywedonomics.com`, DNS records in Cloudflare).
+  The Magic Link email template sends only `{{ .Token }}` (no link), so sign-in works inside the
+  installed app.
+- Bot check: Cloudflare Turnstile widget (hostnames: production, Vercel domains, `localhost`).
+  Site key in `VITE_TURNSTILE_SITE_KEY`; secret key only in Supabase → Authentication → Attack
+  Protection (captcha on). Supabase then requires a token on password sign-in and code requests
+  (not on Google or code verification). The CSP allows `https://challenges.cloudflare.com`
+  (script and frame). LAN phone testing can't pass the check (IP hosts aren't allowed).
 - Authorization: RLS on every table (`is_planner()` for writes, public `select` of active rows),
   hard DELETE revoked, storage policies by wedding-id path prefix. Test with `npm run test:db`.
 - Storage: private bucket `wedding-media` (since 2026-10-20), 10 MB, image types only (enforced
