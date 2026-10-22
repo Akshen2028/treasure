@@ -20,6 +20,11 @@ export const env = {
    * Optional so guests still work if it is missing; planner sign-in reports it instead.
    */
   plannerEmail: import.meta.env.VITE_PLANNER_EMAIL || null,
+  /**
+   * Cloudflare Turnstile site key for the bot check on sign-in forms (public by design).
+   * Without it no check is shown; Supabase then refuses sign-ins if its captcha is on.
+   */
+  turnstileSiteKey: import.meta.env.VITE_TURNSTILE_SITE_KEY || null,
   /** Which wedding this app shows. */
   weddingSlug: import.meta.env.VITE_WEDDING_SLUG || 'main',
 } as const

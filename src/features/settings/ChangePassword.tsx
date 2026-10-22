@@ -2,6 +2,8 @@ import { KeyRound, LoaderCircle } from 'lucide-react'
 import { type FormEvent, useState } from 'react'
 import { toast } from 'sonner'
 
+import { classifySignInError, signInFailureMessage } from '@/auth/signInErrors'
+import { useBotCheck } from '@/components/auth/useBotCheck'
 import { FormField } from '@/components/forms/FormField'
 import { ResponsiveSheet } from '@/components/forms/ResponsiveSheet'
 import { Button } from '@/components/ui/button'
@@ -15,13 +17,28 @@ import { MIN_PASSWORD_LENGTH, type PasswordErrors, validatePasswordChange } from
  * Changes the shared planner password. The current password is checked by signing in again,
  * which also gives Supabase the fresh session it requires before a password change.
  */
-async function changePassword(current: string, next: string, signOutOthers: boolean) {
+async function changePassword(
+  current: string,
+  next: string,
+  signOutOthers: boolean,
+  captchaToken: string | undefined,
+) {
   if (!env.plannerEmail) throw new Error('Planner sign-in isn’t set up.')
   const check = await supabase.auth.signInWithPassword({
     email: env.plannerEmail,
     password: current,
+    options: { captchaToken },
   })
-  if (check.error) return { field: 'current' as const, message: 'That isn’t the current password.' }
+  if (check.error) {
+    const failure = classifySignInError(check.error)
+    return {
+      field: 'current' as const,
+      message:
+        failure.reason === 'wrong-password'
+          ? 'That isn’t the current password.'
+          : signInFailureMessage(failure),
+    }
+  }
 
   const { error } = await supabase.auth.updateUser({ password: next })
   if (error) {
@@ -73,15 +90,16 @@ function ChangePasswordForm({ onDone }: { onDone: () => void }) {
   const [signOutOthers, setSignOutOthers] = useState(true)
   const [errors, setErrors] = useState<PasswordErrors>({})
   const [pending, setPending] = useState(false)
+  const botCheck = useBotCheck()
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault()
     const problems = validatePasswordChange(current, next, confirm)
     setErrors(problems)
-    if (Object.keys(problems).length) return
+    if (Object.keys(problems).length || !botCheck.ready) return
     setPending(true)
     try {
-      const failure = await changePassword(current, next, signOutOthers)
+      const failure = await changePassword(current, next, signOutOthers, botCheck.token)
       if (failure) {
         setErrors({ [failure.field]: failure.message })
         return
@@ -93,6 +111,7 @@ function ChangePasswordForm({ onDone }: { onDone: () => void }) {
     } catch {
       setErrors({ next: 'Couldn’t reach the server. Check your connection and try again.' })
     } finally {
+      botCheck.reset()
       setPending(false)
     }
   }
@@ -138,11 +157,12 @@ function ChangePasswordForm({ onDone }: { onDone: () => void }) {
         />
         Sign out every other device
       </label>
+      {botCheck.element}
       <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
         <Button type="button" variant="ghost" onClick={onDone} disabled={pending}>
           Cancel
         </Button>
-        <Button type="submit" disabled={pending}>
+        <Button type="submit" disabled={pending || !botCheck.ready}>
           {pending && <LoaderCircle data-icon="inline-start" className="animate-spin" />}
           Change password
         </Button>

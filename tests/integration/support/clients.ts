@@ -26,10 +26,23 @@ export function guestClient(): Client {
   return createClient<Database>(url, publishableKey, noSession)
 }
 
-/** Client using the public key, signed in with a password like the planner login. */
-export async function signedInClient(email: string, password: string): Promise<Client> {
+/**
+ * Client using the public key, signed in with an email code like the app's email sign-in.
+ * The code comes from the admin API instead of an inbox, which also skips the bot check
+ * (Supabase requires one when asking for a code or signing in with a password).
+ */
+export async function signedInClient(email: string): Promise<Client> {
+  const { data, error: linkError } = await adminClient().auth.admin.generateLink({
+    type: 'magiclink',
+    email,
+  })
+  if (linkError) throw new Error(`No sign-in code for ${email}: ${linkError.message}`)
   const client = guestClient()
-  const { error } = await client.auth.signInWithPassword({ email, password })
+  const { error } = await client.auth.verifyOtp({
+    email,
+    token: data.properties.email_otp,
+    type: 'email',
+  })
   if (error) throw new Error(`Sign-in failed for ${email}: ${error.message}`)
   return client
 }
