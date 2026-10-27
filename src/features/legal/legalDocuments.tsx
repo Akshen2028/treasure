@@ -83,7 +83,7 @@ export function TermsContent() {
       <h2>Changes and ending</h2>
       <p>
         We may change the app or these terms; the date above shows the latest version. You can stop
-        using the app at any time and ask us to delete your wedding and account.
+        using the app at any time and delete your wedding and account in Settings.
       </p>
 
       <h2>Law and contact</h2>
@@ -146,8 +146,9 @@ export function PrivacyContent() {
       <h2>Keeping and deleting</h2>
       <p>
         We keep your information while your account exists. Deleted items stay in Recently Deleted
-        so you can restore them. To delete your wedding and account, or to see or correct your
-        information, email <Contact />.
+        so you can restore them. Deleting your wedding and account in Settings removes your wedding,
+        its photos and your account permanently. To see or correct your information, or if you can’t
+        sign in to delete it, email <Contact />.
       </p>
 
       <h2>Security</h2>

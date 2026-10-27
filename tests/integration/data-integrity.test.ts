@@ -8,7 +8,7 @@ import { createFixture, type Fixture } from './support/fixture'
 let f: Fixture
 
 beforeAll(async () => {
-  f = await createFixture()
+  f = await createFixture({ signIn: ['planner'] })
 })
 
 afterAll(async () => {

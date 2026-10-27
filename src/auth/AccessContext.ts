@@ -19,6 +19,8 @@ export type SignInResult = { ok: true } | ({ ok: false } & SignInFailure)
 
 export type CreateWeddingResult = { ok: true } | ({ ok: false } & CreateWeddingFailure)
 
+export type DeleteAccountResult = { ok: true } | { ok: false; message: string }
+
 export type AccessContextValue = {
   /** 'initializing' while a saved session is being restored and verified. */
   status: 'initializing' | 'ready'
@@ -54,6 +56,12 @@ export type AccessContextValue = {
   lock: () => Promise<void>
   /** Ends the planner session on every device. */
   signOutEverywhere: () => Promise<void>
+  /**
+   * Permanently deletes the wedding this account plans (confirmed by its web address `slug`),
+   * its photos and the account itself, then ends the session here (the server ended it
+   * everywhere else).
+   */
+  deleteAccount: (slug: string) => Promise<DeleteAccountResult>
 }
 
 export const AccessContext = createContext<AccessContextValue | null>(null)

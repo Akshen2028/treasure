@@ -136,11 +136,29 @@ async function removeWeddingMedia(admin: Client, weddingId: string) {
   if (paths.length) await admin.storage.from(MEDIA_BUCKET).remove(paths)
 }
 
+/** Stands in for a client the file didn't sign in, failing loudly if a test uses it. */
+function notSignedIn(role: string): Client {
+  return new Proxy({} as Client, {
+    get(_, prop) {
+      // Let `await` and cleanup's optional sign-out see a plain object.
+      if (prop === 'then') return undefined
+      throw new Error(`The ${role} client isn't signed in; pass it in createFixture({ signIn }).`)
+    },
+  })
+}
+
 /**
  * Creates two isolated test weddings and three kinds of user (guest, outsider, planner).
  * Everything created is tagged and removed by `cleanup`, and by the global sweep if a run crashes.
  */
-export async function createFixture(): Promise<Fixture> {
+export async function createFixture(
+  options: { signIn?: Array<'planner' | 'outsider'> } = {},
+): Promise<Fixture> {
+  // Sign-ins are rate-limited per IP (about 30 per 5 minutes across the whole suite), so
+  // files sign in only the users they use; the others' clients throw if touched.
+  const { signIn = ['planner', 'outsider'] } = options
+  const clientFor = (user: TestUser, role: 'planner' | 'outsider') =>
+    signIn.includes(role) ? signedInClient(user.email) : Promise.resolve(notSignedIn(role))
   const admin = adminClient()
   const runId = randomUUID().slice(0, 8)
   const insertWedding = async (slug: string, name: string) =>
@@ -163,8 +181,8 @@ export async function createFixture(): Promise<Fixture> {
       .then((r) => must(r, 'planner membership')),
     createChain(admin, wedding.id, 'Main'),
     createChain(admin, other.id, 'Other'),
-    signedInClient(planner.email),
-    signedInClient(outsider.email),
+    clientFor(planner, 'planner'),
+    clientFor(outsider, 'outsider'),
   ])
 
   const fixture: Fixture = {
@@ -186,10 +204,15 @@ export async function createFixture(): Promise<Fixture> {
     plannerClient,
     outsiderClient,
     cleanup: async () => {
-      await Promise.all([
-        plannerClient.auth.signOut().catch(() => {}),
-        outsiderClient.auth.signOut().catch(() => {}),
-      ])
+      await Promise.all(
+        [plannerClient, outsiderClient].map(async (client) => {
+          try {
+            await client.auth.signOut()
+          } catch {
+            // Already signed out, or never signed in.
+          }
+        }),
+      )
       await Promise.all(
         [wedding.id, other.id].map(async (id) => {
           await removeWeddingMedia(admin, id)

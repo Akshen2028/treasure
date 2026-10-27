@@ -13,7 +13,7 @@ let planner: WeddingRepository
 let guest: WeddingRepository
 
 beforeAll(async () => {
-  f = await createFixture()
+  f = await createFixture({ signIn: ['planner'] })
   planner = createSupabaseRepository(f.plannerClient)
   guest = createSupabaseRepository(f.guest)
 })

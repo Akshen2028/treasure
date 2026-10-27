@@ -392,3 +392,8 @@ verify_jwt = false
 # checks the wedding's visibility and share key itself.
 [functions.media]
 verify_jwt = false
+
+# Deletes the signed-in account and its wedding (photos, rows, auth user). The function
+# verifies the session itself, like `chat`, so the gateway's legacy JWT check is off.
+[functions.delete-account]
+verify_jwt = false

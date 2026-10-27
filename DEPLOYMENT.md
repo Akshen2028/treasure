@@ -91,6 +91,12 @@ and `SUPABASE_SECRET_KEY` (used by `test:db` and `seed:dev`). Templates:
   the same visibility/share-key check as `guest_view()`. Uses the built-in
   `SUPABASE_SERVICE_ROLE_KEY` (server-side only). Deploy with `supabase functions deploy media`
   **after user approval**; gateway JWT check off. Deployed 2026-10-19.
+- Edge Function `delete-account` (`supabase/functions/delete-account/`): Settings → "Delete
+  wedding and account". Verifies the session itself (gateway JWT check off), checks the typed
+  web address, then with the built-in `SUPABASE_SERVICE_ROLE_KEY` removes the wedding's photos,
+  the wedding row (rows cascade) and the auth user. Deploy with
+  `supabase functions deploy delete-account` **after user approval**; until it is deployed the
+  button fails harmlessly with an error.
 - **Free-tier pause:** the project pauses after ~7 days without traffic; resume from the
   dashboard. The app shows an error state while paused.
 
