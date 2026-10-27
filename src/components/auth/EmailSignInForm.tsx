@@ -179,7 +179,7 @@ export function EmailSignInForm({
         inputMode="numeric"
         autoComplete="one-time-code"
         ref={codeRef}
-        placeholder="6-digit code"
+        placeholder="Code from the email"
         value={code}
         onChange={(e) => setCode(normalizeCode(e.target.value).slice(0, 10))}
         aria-invalid={error ? true : undefined}

@@ -71,7 +71,7 @@ After a migration, run `npm run db:types`.
 `planners` table) can insert and update their wedding; nobody can hard-delete through the API.
 Deletion is soft (`deleted_at`).
 
-**Planner access:** there are no passwords. Planners sign in with Google or a 6-digit code sent
+**Planner access:** there are no passwords. Planners sign in with Google or an 8-digit code sent
 by email (Supabase Auth, behind a Cloudflare Turnstile bot check); the session stays until the
 planner locks the device. A planner is any account listed in `planners` for the wedding. Public
 sign-ups are off, so only existing accounts can sign in.

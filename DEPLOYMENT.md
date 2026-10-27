@@ -30,6 +30,11 @@ and in Vercel.
   changes, update its host in the CSP.**
 - `Cache-Control: immutable` for `/assets/*` (hashed filenames).
 
+Vercel Firewall (dashboard, set 2026-10-27): Bot Protection in **Log** mode (Challenge can
+break link previews in chat apps), AI Bots allowed, BotID not used, Attack Challenge Mode off
+(emergency switch). Sign-in and search call Supabase directly, so the firewall only covers the
+static site; Supabase rate limits and Turnstile guard the API.
+
 ## Environment variables
 
 Set in Vercel → Settings → Environments → Production (and locally in `.env.local`):
@@ -62,7 +67,7 @@ and `SUPABASE_SECRET_KEY` (used by `test:db` and `seed:dev`). Templates:
 - Migrations: `supabase/migrations/*.sql`, hand-written (no Docker, so no `db diff`). Apply with
   `supabase db push --dry-run`, then `supabase db push` **after user approval**; then
   `npm run db:types`. The CLI is linked (`supabase link`) on the developer machine.
-- Auth: Google or a 6-digit email code; no passwords in the app (since PR F);
+- Auth: Google or an 8-digit email code (expires after 600 s); no passwords in the app (since PR F);
   **public sign-ups disabled** (codes are requested with `shouldCreateUser: false`). Site URL =
   production domain. Free tier: no leaked-password protection, no session time-box.
 - Email: custom SMTP through Resend (domain `mywedonomics.com`, DNS records in Cloudflare).
@@ -74,6 +79,12 @@ and `SUPABASE_SECRET_KEY` (used by `test:db` and `seed:dev`). Templates:
   (not on Google or code verification). Code verifications are rate-limited per IP (about 30
   per 5 minutes); one `test:db` run uses most of that, so wait 5 minutes between runs. The CSP allows `https://challenges.cloudflare.com`
   (script and frame). LAN phone testing can't pass the check (IP hosts aren't allowed).
+- Rate limits (Authentication → Rate Limits; checked 2026-10-27): 30 emails/h for the project,
+  60 s minimum between emails to one address; per IP per 5 minutes: 30 sign-ins, 30 code
+  verifications, 150 token refreshes. SMS, anonymous and Web3 sign-in are off. Email codes
+  (Providers → Email): 8 digits, expire after 600 s. Keep the email limit within Resend's plan.
+  `supabase/config.toml` holds local defaults only; **never `supabase config push`**, it
+  would overwrite these.
 - Authorization: RLS on every table (`is_planner()` for writes, public `select` of active rows),
   hard DELETE revoked, storage policies by wedding-id path prefix. Test with `npm run test:db`.
 - Storage: private bucket `wedding-media` (since 2026-10-20), 10 MB, image types only (enforced

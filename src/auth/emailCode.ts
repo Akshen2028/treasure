@@ -18,7 +18,7 @@ export function normalizeCode(input: string): string {
   return input.replace(/\D/g, '')
 }
 
-/** Supabase codes are 6 digits by default; its settings allow up to 10. */
+/** The code length is a Supabase setting (8 in production; 6 to 10 allowed). */
 export function isCompleteCode(code: string): boolean {
   return /^\d{6,10}$/.test(code)
 }

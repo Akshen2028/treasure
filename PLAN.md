@@ -48,11 +48,12 @@ Wedding → Events → Categories → Activities → Payments (+ activity links 
 
 - **Guest:** "Continue as Guest", no password. Reads only through `guest_view()` (§13); the
   publishable key has no table access. "Entered" is only a remembered UI preference, not a credential.
-- **Planner:** a Supabase Auth account that signs in with Google or an emailed 6-digit code; no
+- **Planner:** a Supabase Auth account that signs in with Google or an emailed 8-digit code; no
   passwords (§13, since PR F). Rows in `planners` link users to weddings; RLS writes use
   `is_planner(wedding_id)` (security definer).
 - Sign-in errors don't reveal whether the account exists (an unknown email looks like a sent
-  code). Supabase's rate limits and the Turnstile bot check guard code requests.
+  code). Supabase's rate limits and the Turnstile bot check guard code requests (values in
+  DEPLOYMENT.md, Supabase).
 - Settings: **Lock** (sign out this device), **Sign out everywhere** (global).
 - Hard DELETE is revoked for API roles; deletes are `deleted_at` updates. Public sign-ups are
   disabled in Supabase.
@@ -269,7 +270,7 @@ launch, so F pre-creates your Gmail as an auth user and Google sign-in links to 
 8. Google Cloud OAuth client and consent screen (`email profile` only; privacy link); enable
    the Google provider in Supabase; redirect URL allowlist (www, Vercel domains, localhost).
    _User steps provided when we get here._
-9. Email sign-in (PR E, decided 2026-10-21): a **6-digit code only** (the email has no link,
+9. Email sign-in (PR E, decided 2026-10-21): a **code only** (8 digits, a Supabase setting; the email has no link,
    since links open outside the installed app). Resend account, DNS records in Cloudflare,
    Supabase custom SMTP. **Turnstile** on every form Supabase checks once captcha is on: email
    code, planner password and Change password (`useBotCheck`). Unknown emails look like a sent
@@ -356,7 +357,14 @@ launch, so F pre-creates your Gmail as an auth user and Google sign-in links to 
     too (they're kept forever, so otherwise create-and-delete is unbounded); caps use the
     defaults above; the blocklist is reserved words plus a short offensive list. Existing rows
     aren't re-counted.
-19. Check Supabase Auth rate limits; Vercel bot protection on the landing page.
+19. ✅ Checked Supabase Auth rate limits; Vercel bot protection (config only, no migration).
+    Decided 2026-10-27: Supabase keeps its rate limits (30 emails/h project-wide, 60 s between
+    emails to one address; per IP per 5 min: 30 sign-ins, 30 code checks, 150 refreshes) with
+    Turnstile on; codes are 8 digits and expire after 10 minutes (was 1 hour). Vercel Bot
+    Protection runs in Log mode (Challenge can break link previews), AI bots allowed, no BotID.
+    Search and sign-in go from the browser straight to Supabase, so Vercel's firewall only
+    covers the static page; Supabase's limits and Turnstile are the real guards. Revisit the
+    email limit with Resend's plan before sign-ups open.
 
 **Phase 5: Launch checklist.**
 
