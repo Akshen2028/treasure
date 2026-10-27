@@ -32,7 +32,7 @@ describe('parseCreateWeddingForm', () => {
     expect(parseCreateWeddingForm(form({ name: 'a'.repeat(WEDDING_NAME_MAX) })).ok).toBe(true)
     expect(parseCreateWeddingForm(form({ name: 'a'.repeat(WEDDING_NAME_MAX + 1) }))).toEqual({
       ok: false,
-      errors: { name: 'Keep the name under 200 characters.' },
+      errors: { name: 'Keep the name to 100 characters or fewer.' },
     })
   })
 

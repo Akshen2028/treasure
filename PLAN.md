@@ -340,8 +340,22 @@ launch, so F pre-creates your Gmail as an auth user and Google sign-in links to 
     disables sending at 0 (display only; the server enforces). Also decided 2026-10-27: the
     separate Anthropic workspace is deferred; the existing key's $5 prepaid credit (no
     top-ups) caps spending for now. Revisit before sign-ups open.
-18. Triggers capping records and photos per wedding; name/slug length limits and a reserved or
-    offensive slug blocklist.
+18. Caps and address rules (migration `20261027150000_wedding_limits.sql`). An `after insert`
+    statement trigger on each wedding table counts the wedding's rows against
+    `record_limit(plan, table)` under a per-wedding advisory lock: 50 events, 100 categories,
+    500 event categories, 2,000 activities, 2,000 links, 300 photos, 5,000 payments. Over the
+    cap it raises 23514 "A wedding can have up to N …", shown as a toast. The storage upload
+    policy also refuses a wedding folder's 801st file (`media_upload_allowed`). Wedding names
+    are 1–100 characters. Web addresses are 3–63 characters, words joined by single hyphens, and
+    not blocked. `slug_blocked()` covers reserved whole addresses (admin, terms, www…) and
+    offensive words matched as whole hyphen-separated words, so "scunthorpe" is fine. A
+    trigger, not a constraint, so the lists can change. The lists are mirrored in
+    `src/domain/slug.ts`, and a unit test compares them with the migration. `slugify()` turns
+    short or reserved results into `…-wedding` and offensive ones into `wedding`, so
+    `create_my_wedding` never fails on them. Decided 2026-10-27: caps count soft-deleted rows
+    too (they're kept forever, so otherwise create-and-delete is unbounded); caps use the
+    defaults above; the blocklist is reserved words plus a short offensive list. Existing rows
+    aren't re-counted.
 19. Check Supabase Auth rate limits; Vercel bot protection on the landing page.
 
 **Phase 5: Launch checklist.**

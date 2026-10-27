@@ -1,14 +1,20 @@
 import { describe, expect, it } from 'vitest'
 
 import {
+  BLOCKED_SLUG_WORDS,
   FALLBACK_SLUG,
+  isSlugBlocked,
+  RESERVED_SLUGS,
   SLUG_BASE_MAX,
   SLUG_MAX,
+  SLUG_MIN,
   SLUG_PATTERN,
   slugCandidate,
   slugError,
   slugify,
 } from './slug'
+// Vite loads the file as text, so the test sees exactly what gets pushed to the database.
+import limitsMigration from '../../supabase/migrations/20261027150000_wedding_limits.sql?raw'
 
 describe('slugify', () => {
   it.each([
@@ -32,10 +38,22 @@ describe('slugify', () => {
     expect(slugify('x'.repeat(200))).toHaveLength(SLUG_BASE_MAX)
   })
 
-  it('always satisfies the database rule, even with a suffix', () => {
-    for (const name of ['Alex & Sam', 'x'.repeat(200), '💍', 'Zoë']) {
-      expect(slugify(name)).toMatch(SLUG_PATTERN)
-      expect(slugCandidate(slugify(name), 999)).toMatch(SLUG_PATTERN)
+  it.each([
+    ['Al', 'al-wedding'],
+    ['Jo & Li', 'jo-li'],
+    ['Admin', 'admin-wedding'],
+    ['W', 'w-wedding'],
+    ['Shit Happens', FALLBACK_SLUG],
+    ['Scunthorpe Wedding', 'scunthorpe-wedding'],
+  ])('steers %j away from short and blocked addresses: %j', (name, slug) => {
+    expect(slugify(name)).toBe(slug)
+  })
+
+  it('always satisfies the database rules, even with a suffix', () => {
+    for (const name of ['Alex & Sam', 'x'.repeat(200), '💍', 'Zoë', 'A', 'Terms', 'kkk']) {
+      for (const slug of [slugify(name), slugCandidate(slugify(name), 999)]) {
+        expect(slugError(slug)).toBeNull()
+      }
     }
   })
 })
@@ -51,12 +69,20 @@ describe('slugCandidate', () => {
 })
 
 describe('slugError', () => {
-  it.each(['alex-sam', 'a', '2027-priya', 'x'.repeat(SLUG_MAX)])('accepts %j', (slug) => {
-    expect(slugError(slug)).toBeNull()
-  })
+  it.each(['alex-sam', 'abc', '2027-priya', 'x'.repeat(SLUG_MAX), 'main', 'terms-and-co'])(
+    'accepts %j',
+    (slug) => {
+      expect(slugError(slug)).toBeNull()
+    },
+  )
 
   it.each([
     ['', 'Enter a web address.'],
+    ['ab', `Use at least ${SLUG_MIN} characters.`],
+    ['alex-', expect.stringContaining('single hyphens')],
+    ['alex--sam', expect.stringContaining('single hyphens')],
+    ['admin', 'That address isn’t available. Try another.'],
+    ['alex-fuck-sam', 'That address isn’t available. Try another.'],
     ['x'.repeat(SLUG_MAX + 1), 'Keep it to 63 characters or fewer.'],
     ['-alex', expect.stringContaining('lower-case')],
     ['alex sam', expect.stringContaining('lower-case')],
@@ -64,5 +90,36 @@ describe('slugError', () => {
     ['zoë', expect.stringContaining('lower-case')],
   ])('refuses %j', (slug, message) => {
     expect(slugError(slug)).toEqual(message)
+  })
+})
+
+describe('isSlugBlocked', () => {
+  it('blocks reserved addresses whole and offensive words anywhere', () => {
+    expect(isSlugBlocked('settings')).toBe(true)
+    expect(isSlugBlocked('settings-and-co')).toBe(false)
+    expect(isSlugBlocked('nazi-party')).toBe(true)
+    expect(isSlugBlocked('scunthorpe')).toBe(false)
+  })
+})
+
+describe('blocklists match the database', () => {
+  const sql = limitsMigration
+  function sqlList(name: string): string[] {
+    const block = sql.match(new RegExp(`-- ${name}:start([\\s\\S]*?)-- ${name}:end`))?.[1]
+    return [...(block ?? '').matchAll(/'([^']+)'/g)].map((m) => m[1]!)
+  }
+
+  it('has the same reserved addresses', () => {
+    expect(sqlList('reserved')).toEqual(RESERVED_SLUGS)
+  })
+
+  it('has the same offensive words', () => {
+    expect(sqlList('offensive')).toEqual(BLOCKED_SLUG_WORDS)
+  })
+
+  it('keeps every list entry a valid slug shape', () => {
+    for (const slug of [...RESERVED_SLUGS, ...BLOCKED_SLUG_WORDS]) {
+      expect(slug).toMatch(SLUG_PATTERN)
+    }
   })
 })

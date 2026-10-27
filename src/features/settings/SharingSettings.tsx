@@ -13,7 +13,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import type { WeddingData } from '@/data/queries'
 import { RepositoryError } from '@/data/repository'
-import { slugError } from '@/domain/slug'
+import { SLUG_MAX, slugError } from '@/domain/slug'
 import type { GuestAmounts, WeddingVisibility } from '@/domain/types'
 import { copyText } from '@/lib/download'
 import { errorMessage } from '@/lib/errors'
@@ -199,6 +199,8 @@ export function WebAddressForm({ data }: { data: WeddingData }) {
       onError: (failure) => {
         if (failure instanceof RepositoryError && failure.reason === 'conflict') {
           setError('That address is taken. Try another.')
+        } else if (failure instanceof RepositoryError && failure.reason === 'invalid') {
+          setError(failure.message)
         } else {
           toast.error(errorMessage(failure))
         }
@@ -216,7 +218,7 @@ export function WebAddressForm({ data }: { data: WeddingData }) {
             setSlug(e.target.value.toLowerCase().replace(/\s/g, '-'))
             setError(undefined)
           }}
-          maxLength={63}
+          maxLength={SLUG_MAX}
           autoCapitalize="none"
           autoCorrect="off"
           spellCheck={false}

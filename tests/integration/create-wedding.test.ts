@@ -160,6 +160,10 @@ describe('slugify mirrors src/domain/slug.ts', () => {
     '',
     `${'a'.repeat(49)} bcd`,
     'x'.repeat(200),
+    'Al',
+    'Admin',
+    'Shit Happens',
+    'Scunthorpe Wedding',
   ])('%j', async (name) => {
     const { data, error } = await admin.rpc('slugify', { p_name: name })
     expect(error).toBeNull()

@@ -499,7 +499,13 @@ export type Database = {
         Returns: Json
       }
       is_planner: { Args: { target_wedding_id: string }; Returns: boolean }
+      media_upload_allowed: { Args: { p_wedding_id: string }; Returns: boolean }
       new_share_key: { Args: never; Returns: string }
+      record_limit: {
+        Args: { p_plan: string; p_table: string }
+        Returns: number
+      }
+      record_limit_noun: { Args: { p_table: string }; Returns: string }
       reset_share_key: { Args: { p_wedding_id: string }; Returns: string }
       search_weddings: {
         Args: { q: string }
@@ -510,6 +516,9 @@ export type Database = {
         }[]
       }
       slug_available: { Args: { p_slug: string }; Returns: boolean }
+      slug_blocked: { Args: { p_slug: string }; Returns: boolean }
+      slug_offensive: { Args: { p_slug: string }; Returns: boolean }
+      slug_reserved: { Args: { p_slug: string }; Returns: boolean }
       slugify: { Args: { p_name: string }; Returns: string }
       storage_object_wedding_id: {
         Args: { object_name: string }
