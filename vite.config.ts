@@ -14,8 +14,8 @@ export default defineConfig({
   },
   build: {
     // The entry chunk is React + the Supabase client + the query cache, which every screen
-    // needs (~150 kB gzipped); screens themselves are split out and load on demand.
-    chunkSizeWarningLimit: 600,
+    // needs (~150 kB gzipped, ~600 kB raw); screens themselves are split out and load on demand.
+    chunkSizeWarningLimit: 650,
   },
   test: {
     include: ['src/**/*.test.ts', 'src/**/*.test.tsx'],

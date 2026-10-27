@@ -2,7 +2,7 @@ import { ChevronLeft, Eye, Mail } from 'lucide-react'
 import { useState } from 'react'
 import { Navigate, useSearchParams } from 'react-router'
 
-import { entryPath } from '@/app/paths'
+import { entryPath, paths } from '@/app/paths'
 import { useAccess } from '@/auth/AccessContext'
 import { EmailSignInForm } from '@/components/auth/EmailSignInForm'
 import { GoogleSignInButton } from '@/components/auth/GoogleSignInButton'
@@ -18,6 +18,7 @@ export function WelcomePage() {
   useDocumentTitle('Welcome')
 
   if (status === 'initializing') return <SplashScreen />
+  if (mode === 'new-account') return <Navigate to={paths.createWedding} replace />
   // Returning visitors, and anyone who just chose, go on to a wedding.
   if (mode !== 'unset') {
     return <Navigate to={entryPath(searchParams.get('next'), plannerSlug)} replace />

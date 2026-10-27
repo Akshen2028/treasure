@@ -1,7 +1,16 @@
 import { supabase } from '@/lib/supabase'
 
+/**
+ * - planner: the session plans the wedding `slug`
+ * - no-wedding: a valid session that plans nothing yet (a new account; send it to create one)
+ * - invalid-session: the token is expired or revoked
+ * - unreachable: the server couldn't be asked (e.g. offline)
+ */
 export type Verification =
-  { kind: 'planner'; slug: string } | { kind: 'not-planner' } | { kind: 'unreachable' }
+  | { kind: 'planner'; slug: string }
+  | { kind: 'no-wedding' }
+  | { kind: 'invalid-session' }
+  | { kind: 'unreachable' }
 
 /**
  * Asks the server which wedding the current session plans (one per account).
@@ -19,10 +28,10 @@ export async function verifyPlanner(): Promise<Verification> {
   if (error) {
     // An expired or revoked token is an auth failure, not a connectivity problem.
     if (error.code === 'PGRST301' || error.code === '401' || /JWT/i.test(error.message)) {
-      return { kind: 'not-planner' }
+      return { kind: 'invalid-session' }
     }
     return { kind: 'unreachable' }
   }
   const slug = data[0]?.weddings.slug
-  return slug ? { kind: 'planner', slug } : { kind: 'not-planner' }
+  return slug ? { kind: 'planner', slug } : { kind: 'no-wedding' }
 }

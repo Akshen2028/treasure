@@ -4,6 +4,10 @@
  */
 export const paths = {
   welcome: '/',
+  /** First run for a signed-in account that plans no wedding yet. */
+  createWedding: '/create',
+  terms: '/terms',
+  privacy: '/privacy',
   /** The dashboard of a wedding. */
   wedding: (slug: string) => weddingPaths(slug).home,
 } as const

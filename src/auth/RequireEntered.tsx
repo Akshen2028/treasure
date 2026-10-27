@@ -10,7 +10,7 @@ import { useAccess } from './AccessContext'
 
 /**
  * Layout route: sends first-time visitors to the welcome screen, which brings them back here
- * (`?next=`, so a shared link still opens its wedding).
+ * (`?next=`, so a shared link still opens its wedding), and new accounts to create their wedding.
  */
 export function RequireEntered() {
   const { status, mode, isPlanner } = useAccess()
@@ -21,6 +21,7 @@ export function RequireEntered() {
     const next = new URLSearchParams({ next: pathname + search })
     return <Navigate to={`${paths.welcome}?${next}`} replace />
   }
+  if (mode === 'new-account') return <Navigate to={paths.createWedding} replace />
   return (
     // Locking, signing out or switching weddings discards the conversation.
     <ChatProvider key={`${slug}:${isPlanner ? 'planner' : 'guest'}`}>

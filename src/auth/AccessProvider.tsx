@@ -8,6 +8,7 @@ import {
   AccessContext,
   type AccessContextValue,
   type AccessMode,
+  type CreateWeddingResult,
   type SignInResult,
 } from './AccessContext'
 import { classifyOAuthError, parseOAuthCallback, stripOAuthParams } from './oauthCallback'
@@ -18,6 +19,7 @@ import {
   isUnknownAccountError,
   signInFailureMessage,
 } from './signInErrors'
+import { classifyCreateWeddingError } from './weddingCreation'
 
 /**
  * Remembers that this browser has been past the welcome screen. It is a UI preference,
@@ -124,7 +126,13 @@ export function AccessProvider({ children }: { children: ReactNode }) {
       markEntered()
       setPlannerSlug(result.slug)
       setMode('planner')
-    } else if (result.kind === 'not-planner') {
+    } else if (result.kind === 'no-wedding') {
+      // A new account: keep the session so it can create its wedding.
+      pendingVerification.current = false
+      markEntered()
+      setPlannerSlug(null)
+      setMode('new-account')
+    } else if (result.kind === 'invalid-session') {
       pendingVerification.current = false
       await supabase.auth.signOut({ scope: 'local' })
       setPlannerSlug(null)
@@ -149,7 +157,7 @@ export function AccessProvider({ children }: { children: ReactNode }) {
         if (cancelled) return
         if (data.session) {
           const result = await applyVerification()
-          if (redirect === 'signed-in' && result === 'not-planner') {
+          if (redirect === 'signed-in' && result === 'invalid-session') {
             toast.error(signInFailureMessage({ reason: 'not-planner' }))
           }
         } else setMode(fallbackMode())
@@ -202,7 +210,10 @@ export function AccessProvider({ children }: { children: ReactNode }) {
     setMode('guest')
   }, [])
 
-  /** Runs a sign-in request, then confirms with the server that the account plans this wedding. */
+  /**
+   * Runs a sign-in request, then asks the server which wedding the account plans. An account
+   * with none yet succeeds too, as a new account.
+   */
   const signInAndVerify = useCallback(
     async (request: () => Promise<{ error: AuthError | null }>): Promise<SignInResult> => {
       signingIn.current = true
@@ -210,7 +221,7 @@ export function AccessProvider({ children }: { children: ReactNode }) {
         const { error } = await request()
         if (error) return { ok: false, ...classifySignInError(error) }
         const verification = await applyVerification()
-        if (verification === 'planner') return { ok: true }
+        if (verification === 'planner' || verification === 'no-wedding') return { ok: true }
         if (verification === 'unreachable') return { ok: false, reason: 'network' }
         return { ok: false, reason: 'not-planner' }
       } finally {
@@ -275,6 +286,32 @@ export function AccessProvider({ children }: { children: ReactNode }) {
     [fallbackMode],
   )
 
+  const createWedding = useCallback(
+    async (name: string, weddingDate: string | null): Promise<CreateWeddingResult> => {
+      const { data, error } = await supabase.rpc('create_my_wedding', {
+        p_name: name,
+        p_wedding_date: weddingDate ?? undefined,
+      })
+      if (error) {
+        const failure = classifyCreateWeddingError(error)
+        // Created in another tab meanwhile: carry on with that wedding.
+        if (failure.reason === 'already-planning' && (await applyVerification()) === 'planner') {
+          return { ok: true }
+        }
+        if (failure.reason === 'signed-out') await endSession('local')
+        return { ok: false, ...failure }
+      }
+      // The database just made this account the wedding's planner; no need to ask again.
+      pendingVerification.current = false
+      setPlannerSlug(data.slug)
+      setMode('planner')
+      return { ok: true }
+    },
+    // Both are used in the async body; the memo-dependencies rule misreads it.
+    // oxlint-disable-next-line react/memo-dependencies
+    [applyVerification, endSession],
+  )
+
   const value = useMemo<AccessContextValue>(
     () => ({
       status,
@@ -284,6 +321,7 @@ export function AccessProvider({ children }: { children: ReactNode }) {
       signInWithGoogle,
       sendEmailCode,
       verifyEmailCode,
+      createWedding,
       lock: () => endSession('local'),
       signOutEverywhere: () => endSession('global'),
     }),
@@ -295,6 +333,7 @@ export function AccessProvider({ children }: { children: ReactNode }) {
       signInWithGoogle,
       sendEmailCode,
       verifyEmailCode,
+      createWedding,
       endSession,
     ],
   )
