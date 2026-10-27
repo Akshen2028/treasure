@@ -79,7 +79,7 @@ settings have no UI yet (Phase 3).
 
 **Phase 2 (sign-in), done so far:** step 10 `create_my_wedding()` (PR C, migration pushed);
 Google sign-in (PR D; Google Cloud project `mywedonomics`, consent screen in Testing); email
-6-digit code sign-in with a Cloudflare Turnstile bot check (PR E, #28; Resend SMTP from
+8-digit code sign-in with a Cloudflare Turnstile bot check (PR E, #28; Resend SMTP from
 `no-reply@mywedonomics.com`, code-only email template, Supabase captcha on since 2026-10-22).
 **PR F (branch `phase2/retire-password`)** removes the password login, Change password, the
 login throttle, `VITE_PLANNER_EMAIL` and `planner:setup`. No move was needed: `main`'s only
@@ -127,8 +127,12 @@ Migrations `20261027150000_wedding_limits.sql` and `20261027160000_blocked_slug_
 (fix: the blocked-address trigger must run as definer) pushed on 2026-10-27, ahead of the
 merge. See PLAN.md §13 step 18.
 
-**Next: Phase 4, step 19** (Supabase Auth rate limits; Vercel bot protection on the landing
-page). The key rotation and Supabase Pro upgrade are deferred to the launch
+**Phase 4 step 19 (branch `phase4/rate-limits`)**: dashboard settings only, checked
+2026-10-27 (values in DEPLOYMENT.md): Supabase rate limits kept, code expiry cut to 10 minutes,
+Vercel Bot Protection in Log mode. The code input no longer says "6-digit" (codes are 8). Phase
+4 is complete with this.
+
+**Next: Phase 5, step 20** (PLAN.md §13). The key rotation and Supabase Pro upgrade are deferred to the launch
 checklist (Phase 5), before public sign-ups are enabled.
 
 ## Unresolved decisions
