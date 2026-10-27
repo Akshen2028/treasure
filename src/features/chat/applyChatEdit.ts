@@ -1,9 +1,9 @@
-import { paths } from '@/app/paths'
+import { weddingPaths } from '@/app/paths'
+import { useWeddingRoute } from '@/app/WeddingContext'
 import { useSnapshotMutation } from '@/data/queries'
 import type { WeddingRepository } from '@/data/repository'
 import type { Id, WeddingSnapshot } from '@/domain/types'
 import { switchBudgetMode } from '@/features/settings/mutations'
-import { env } from '@/lib/env'
 
 import type { EditStep, ParentRef } from './chatEdits'
 
@@ -30,6 +30,8 @@ export type ApplyResult = {
 export async function runEditSteps(
   repository: WeddingRepository,
   weddingId: Id,
+  /** The wedding's URL slug, for links to changed pages. */
+  slug: string,
   steps: EditStep[],
   /** The data the proposal was made against, to find each record's page. */
   snapshot: WeddingSnapshot,
@@ -45,6 +47,7 @@ export async function runEditSteps(
     ...snapshot.payments.map((p) => [p.id, p.activityId] as const),
     ...snapshot.activityLinks.map((l) => [l.id, l.activityId] as const),
   ])
+  const paths = weddingPaths(slug)
   let focus: EditFocus | null = null
   const showEvent = (eventId: Id) => {
     focus = { kind: 'event', path: paths.event(eventId) }
@@ -75,7 +78,7 @@ export async function runEditSteps(
         return
       case 'set_budget_mode': {
         // Seeds manual amounts from the latest totals, including earlier steps.
-        const latest = await repository.loadSnapshot(env.weddingSlug)
+        const latest = await repository.loadSnapshot(slug)
         const previous = latest.wedding.budgetMode
         await switchBudgetMode(repository, latest, step.mode)
         // Flipping back is enough: the other mode's amounts were left untouched.
@@ -217,6 +220,7 @@ export async function runEditSteps(
 
 /** Applies a reviewed proposal; the snapshot refetches afterwards so every total is fresh. */
 export function useApplyChatEdit() {
+  const { slug } = useWeddingRoute()
   return useSnapshotMutation({
     mutationFn: (
       repository,
@@ -225,7 +229,7 @@ export function useApplyChatEdit() {
         steps,
         snapshot,
       }: { weddingId: Id; steps: EditStep[]; snapshot: WeddingSnapshot },
-    ) => runEditSteps(repository, weddingId, steps, snapshot),
+    ) => runEditSteps(repository, weddingId, slug, steps, snapshot),
   })
 }
 

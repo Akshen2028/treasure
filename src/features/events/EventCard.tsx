@@ -1,7 +1,7 @@
 import { CalendarDays, ChevronRight, MapPin } from 'lucide-react'
 import { Link } from 'react-router'
 
-import { paths } from '@/app/paths'
+import { useWeddingPaths } from '@/app/WeddingContext'
 import { BudgetFigures } from '@/components/budget/BudgetFigures'
 import type { LevelSummary } from '@/domain/budget'
 import { formatDate } from '@/domain/dates'
@@ -11,6 +11,7 @@ import { useMediaUrl } from '@/data/queries'
 
 /** Dashboard card: name, date, budget, paid and progress. */
 export function EventCard({ event, summary }: { event: WeddingEvent; summary: LevelSummary }) {
+  const paths = useWeddingPaths()
   const mediaUrl = useMediaUrl()
   return (
     <Link

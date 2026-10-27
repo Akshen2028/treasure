@@ -2,7 +2,7 @@ import { ChevronRight, CircleOff, ReceiptText, RotateCcw } from 'lucide-react'
 import { useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router'
 
-import { paths } from '@/app/paths'
+import { useWeddingPaths } from '@/app/WeddingContext'
 import { useAccess } from '@/auth/AccessContext'
 import { ConfirmDialog } from '@/components/feedback/ConfirmDialog'
 import { EmptyState } from '@/components/feedback/EmptyState'
@@ -78,6 +78,7 @@ function UnavailableActivity({
   categoryId,
   activityId,
 }: { data: WeddingData } & Params) {
+  const paths = useWeddingPaths()
   const { isPlanner } = useAccess()
   const { restore, isPending } = useRestoreWithToast()
   const activity = data.snapshot.activities.find(
@@ -138,6 +139,7 @@ function ActivityDetails({
   categoryId,
   activityId,
 }: { data: WeddingData } & Params) {
+  const paths = useWeddingPaths()
   const { isPlanner } = useAccess()
   const navigate = useNavigate()
   const deleteWithUndo = useDeleteWithUndo()
@@ -258,6 +260,7 @@ function ActivityDetails({
 }
 
 export function ActivityPage() {
+  const paths = useWeddingPaths()
   const { eventId = '', categoryId = '', activityId = '' } = useParams()
   return (
     <WeddingDataBoundary

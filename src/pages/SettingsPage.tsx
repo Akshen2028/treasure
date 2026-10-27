@@ -12,7 +12,7 @@ import {
 import { useState } from 'react'
 import { Link } from 'react-router'
 
-import { paths } from '@/app/paths'
+import { useWeddingPaths } from '@/app/WeddingContext'
 import { useAccess } from '@/auth/AccessContext'
 import { PlannerLoginDialog } from '@/components/auth/PlannerLoginDialog'
 import { WeddingDataBoundary } from '@/components/feedback/WeddingDataBoundary'
@@ -124,6 +124,7 @@ function AccessCard() {
 }
 
 export function SettingsPage() {
+  const paths = useWeddingPaths()
   const { isPlanner } = useAccess()
   return (
     <>

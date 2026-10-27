@@ -10,7 +10,8 @@ import {
 import { type FormEvent, useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router'
 
-import { paths } from '@/app/paths'
+import type { WeddingPaths } from '@/app/paths'
+import { useWeddingPaths } from '@/app/WeddingContext'
 import { EmptyState } from '@/components/feedback/EmptyState'
 import { WeddingDataBoundary } from '@/components/feedback/WeddingDataBoundary'
 import { DetailHeader } from '@/components/layout/DetailHeader'
@@ -29,18 +30,19 @@ const GROUPS: Array<{ kind: SearchKind; title: string; icon: LucideIcon }> = [
 
 const FIELD_LABEL = { location: 'Location', description: 'Description', notes: 'Notes' } as const
 
-function resultUrl(result: SearchResult): string {
+function resultUrl(paths: WeddingPaths, result: SearchResult): string {
   if (result.kind === 'event') return paths.event(result.eventId)
   if (result.kind === 'category') return paths.category(result.eventId, result.categoryId!)
   return paths.activity(result.eventId, result.categoryId!, result.activityId!)
 }
 
 function ResultRow({ result, query }: { result: SearchResult; query: string }) {
+  const paths = useWeddingPaths()
   return (
     <li className="[&+&]:border-t">
       <Link
         viewTransition
-        to={resultUrl(result)}
+        to={resultUrl(paths, result)}
         className="flex min-h-14 flex-col justify-center px-4 py-3 transition-colors hover:bg-muted/60 focus-visible:bg-muted/60"
       >
         <span className="font-medium">
@@ -115,6 +117,7 @@ function Results({ data, query }: { data: WeddingData; query: string }) {
 }
 
 export function SearchPage() {
+  const paths = useWeddingPaths()
   const [params, setParams] = useSearchParams()
   const navigate = useNavigate()
   const inputRef = useRef<HTMLInputElement>(null)

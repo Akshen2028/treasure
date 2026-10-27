@@ -38,7 +38,6 @@ Set in Vercel → Settings → Environments → Production (and locally in `.env
 | ------------------------------- | ------------------------------------------- |
 | `VITE_SUPABASE_URL`             | Supabase project URL                        |
 | `VITE_SUPABASE_PUBLISHABLE_KEY` | Publishable (anon) key, safe in the browser |
-| `VITE_WEDDING_SLUG`             | Which wedding to show (`main`)              |
 | `VITE_TURNSTILE_SITE_KEY`       | Cloudflare Turnstile site key (public)      |
 
 Local-only, never on Vercel: `.env.test.local` with `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY`

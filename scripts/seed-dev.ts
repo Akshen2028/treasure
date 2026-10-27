@@ -30,7 +30,8 @@ if (!args.has('--yes')) {
 const url = process.env.SUPABASE_URL
 const secretKey = process.env.SUPABASE_SECRET_KEY
 if (!url || !secretKey) fail('SUPABASE_URL and SUPABASE_SECRET_KEY must be set in .env.test.local.')
-const slug = process.env.VITE_WEDDING_SLUG || 'main'
+// The wedding to fill (its URL slug); the original wedding unless SEED_SLUG says otherwise.
+const slug = process.env.SEED_SLUG || 'main'
 
 const db = createClient(url, secretKey, {
   auth: { persistSession: false, autoRefreshToken: false },

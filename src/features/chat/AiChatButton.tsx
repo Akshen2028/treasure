@@ -2,12 +2,13 @@ import { Sparkles } from 'lucide-react'
 import { useEffect } from 'react'
 import { Link, useLocation } from 'react-router'
 
-import { paths } from '@/app/paths'
+import { useWeddingPaths } from '@/app/WeddingContext'
 import { useAccess } from '@/auth/AccessContext'
 import { Button } from '@/components/ui/button'
 
 /** Floating button on every screen that opens the assistant. Planners only. */
 export function AiChatButton() {
+  const paths = useWeddingPaths()
   const { isPlanner } = useAccess()
   const { pathname } = useLocation()
 

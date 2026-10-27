@@ -1,11 +1,15 @@
-import { createContext, use } from 'react'
+import { createContext, use, useMemo } from 'react'
+
+import { useOptionalWeddingRoute } from '@/app/WeddingContext'
+
+import { showsPlannerControls } from './plannerAccess'
 
 import type { SignInFailure } from './signInErrors'
 
 /**
  * - unset: first visit, nothing chosen yet (show the welcome screen)
  * - guest: read-only
- * - planner: signed in and confirmed by the server as a planner of this wedding
+ * - planner: signed in and confirmed by the server as the planner of a wedding (`plannerSlug`)
  */
 export type AccessMode = 'unset' | 'guest' | 'planner'
 
@@ -15,7 +19,8 @@ export type AccessContextValue = {
   /** 'initializing' while a saved session is being restored and verified. */
   status: 'initializing' | 'ready'
   mode: AccessMode
-  isPlanner: boolean
+  /** The wedding the signed-in planner plans (one per account); null otherwise. */
+  plannerSlug: string | null
   continueAsGuest: () => void
   /** Redirects to Google; on success the page unloads and the result arrives after return. */
   signInWithGoogle: () => Promise<SignInResult>
@@ -34,8 +39,22 @@ export type AccessContextValue = {
 
 export const AccessContext = createContext<AccessContextValue | null>(null)
 
-export function useAccess(): AccessContextValue {
+export type Access = AccessContextValue & {
+  /** Whether to show planner controls here (see `showsPlannerControls`). */
+  isPlanner: boolean
+}
+
+export function useAccess(): Access {
   const value = use(AccessContext)
-  if (!value) throw new Error('useAccess must be used inside <AccessProvider>')
-  return value
+  const weddingSlug = useOptionalWeddingRoute()?.slug ?? null
+  const access = useMemo(
+    () =>
+      value && {
+        ...value,
+        isPlanner: showsPlannerControls(value.plannerSlug, weddingSlug),
+      },
+    [value, weddingSlug],
+  )
+  if (!access) throw new Error('useAccess must be used inside <AccessProvider>')
+  return access
 }

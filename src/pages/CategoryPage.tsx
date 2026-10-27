@@ -2,7 +2,7 @@ import { CircleOff, ListChecks, Plus, RotateCcw, Share2 } from 'lucide-react'
 import { useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router'
 
-import { paths } from '@/app/paths'
+import { useWeddingPaths } from '@/app/WeddingContext'
 import { useAccess } from '@/auth/AccessContext'
 import { BudgetFigures } from '@/components/budget/BudgetFigures'
 import { ConfirmDialog } from '@/components/feedback/ConfirmDialog'
@@ -32,6 +32,7 @@ function ActivitiesSection({
   eventId: string
   eventCategoryId: string
 }) {
+  const paths = useWeddingPaths()
   const { isPlanner } = useAccess()
   const [adding, setAdding] = useState(false)
   const activities = activitiesForCategory(data.active, eventCategoryId)
@@ -102,6 +103,7 @@ function ActivitiesSection({
 
 /** Explains why a category can't be shown, offering restore where that would help. */
 function UnavailableCategory({ data, eventId, categoryId }: { data: WeddingData } & Params) {
+  const paths = useWeddingPaths()
   const { isPlanner } = useAccess()
   const { restore, isPending } = useRestoreWithToast()
   const event = data.snapshot.events.find((e) => e.id === eventId)
@@ -163,6 +165,7 @@ function UnavailableCategory({ data, eventId, categoryId }: { data: WeddingData 
 }
 
 function CategoryDetails({ data, eventId, categoryId }: { data: WeddingData } & Params) {
+  const paths = useWeddingPaths()
   const { isPlanner } = useAccess()
   const { shares, format } = useAmountFormat()
   const navigate = useNavigate()
@@ -279,6 +282,7 @@ function CategoryDetails({ data, eventId, categoryId }: { data: WeddingData } & 
 }
 
 export function CategoryPage() {
+  const paths = useWeddingPaths()
   const { eventId = '', categoryId = '' } = useParams()
   return (
     <WeddingDataBoundary

@@ -79,7 +79,8 @@ sign-ups are off, so only existing accounts can sign in.
 **Sample data:** `npm run seed:dev -- --yes` permanently clears the wedding's events,
 categories, activities, payments, photos and custom categories, then adds a sample multi-day
 wedding. `--clear-only` clears without adding anything: run it before going live. The wedding
-itself, default categories and planner accounts are kept.
+itself, default categories and planner accounts are kept. It targets `main` unless `SEED_SLUG`
+names another wedding.
 
 **Integration tests** (`npm run test:db`) need `.env.test.local` (see `.env.test.example`).
 They create a temporary test wedding and test users, and remove them afterwards, including

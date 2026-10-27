@@ -3,7 +3,7 @@ import { type FormEvent, useState } from 'react'
 import { useNavigate } from 'react-router'
 import { toast } from 'sonner'
 
-import { paths } from '@/app/paths'
+import { useWeddingPaths } from '@/app/WeddingContext'
 import { FormField } from '@/components/forms/FormField'
 import { MoneyInput } from '@/components/forms/MoneyInput'
 import { ResponsiveSheet } from '@/components/forms/ResponsiveSheet'
@@ -55,6 +55,7 @@ function ActivityForm({
   activity,
   onDone,
 }: Omit<ActivityFormSheetProps, 'open' | 'onOpenChange'> & { onDone: () => void }) {
+  const paths = useWeddingPaths()
   const navigate = useNavigate()
   const create = useCreateActivity()
   const update = useUpdateActivity()

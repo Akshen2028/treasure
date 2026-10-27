@@ -18,13 +18,13 @@ export function PlannerOnly({ children, feature }: { children: ReactNode; featur
     <EmptyState
       icon={LockKeyhole}
       title="Planner access needed"
-      description={`${feature} is available to planners. Sign in with the planner password to continue.`}
+      description={`${feature} is available to this wedding’s planners. Sign in to continue.`}
       action={
         <PlannerLoginDialog
           trigger={
             <Button>
               <KeyRound data-icon="inline-start" />
-              Enter planner password
+              Planner sign-in
             </Button>
           }
         />

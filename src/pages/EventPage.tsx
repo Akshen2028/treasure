@@ -2,7 +2,7 @@ import { CalendarDays, CircleOff, LayoutGrid, MapPin, Plus, RotateCcw } from 'lu
 import { useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router'
 
-import { paths } from '@/app/paths'
+import { useWeddingPaths } from '@/app/WeddingContext'
 import { useAccess } from '@/auth/AccessContext'
 import { BudgetFigures } from '@/components/budget/BudgetFigures'
 import { ConfirmDialog } from '@/components/feedback/ConfirmDialog'
@@ -48,6 +48,7 @@ function DeletedEventNotice({ event }: { event: WeddingEvent }) {
 }
 
 function CategoriesSection({ data, event }: { data: WeddingData; event: WeddingEvent }) {
+  const paths = useWeddingPaths()
   const { isPlanner } = useAccess()
   const [adding, setAdding] = useState(false)
   const categories = categoriesForEvent(data.active, event.id)
@@ -119,6 +120,7 @@ function CategoriesSection({ data, event }: { data: WeddingData; event: WeddingE
 }
 
 function EventDetails({ data, eventId }: { data: WeddingData; eventId: string }) {
+  const paths = useWeddingPaths()
   const { isPlanner } = useAccess()
   const { shares, format } = useAmountFormat()
   const navigate = useNavigate()
@@ -239,6 +241,7 @@ function EventDetails({ data, eventId }: { data: WeddingData; eventId: string })
 }
 
 export function EventPage() {
+  const paths = useWeddingPaths()
   const { eventId = '' } = useParams()
   return (
     <WeddingDataBoundary
