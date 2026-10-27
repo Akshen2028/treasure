@@ -2,6 +2,7 @@ import type { AuthError } from '@supabase/supabase-js'
 import { type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { toast } from 'sonner'
 
+import { env } from '@/lib/env'
 import { supabase } from '@/lib/supabase'
 
 import {
@@ -9,8 +10,10 @@ import {
   type AccessContextValue,
   type AccessMode,
   type CreateWeddingResult,
+  type DeleteAccountResult,
   type SignInResult,
 } from './AccessContext'
+import { deleteAccountFailureMessage } from './accountDeletion'
 import { classifyOAuthError, parseOAuthCallback, stripOAuthParams } from './oauthCallback'
 import { verifyPlanner } from './plannerVerification'
 import {
@@ -322,6 +325,36 @@ export function AccessProvider({ children }: { children: ReactNode }) {
     [applyVerification, endSession],
   )
 
+  const deleteAccount = useCallback(
+    async (slug: string): Promise<DeleteAccountResult> => {
+      const { data } = await supabase.auth.getSession()
+      const token = data.session?.access_token
+      if (!token) return { ok: false, message: deleteAccountFailureMessage(401, null) }
+      let response: Response
+      try {
+        response = await fetch(`${env.supabaseUrl}/functions/v1/delete-account`, {
+          method: 'POST',
+          headers: {
+            apikey: env.supabasePublishableKey,
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ slug }),
+        })
+      } catch {
+        return { ok: false, message: deleteAccountFailureMessage(null, null) }
+      }
+      if (!response.ok) {
+        const body: unknown = await response.json().catch(() => null)
+        return { ok: false, message: deleteAccountFailureMessage(response.status, body) }
+      }
+      // The account is gone and its sessions revoked; clear this device too.
+      await endSession('local')
+      return { ok: true }
+    },
+    [endSession],
+  )
+
   const value = useMemo<AccessContextValue>(
     () => ({
       status,
@@ -337,6 +370,7 @@ export function AccessProvider({ children }: { children: ReactNode }) {
       plannerSlugChanged: (slug: string) => setPlannerSlug((current) => current && slug),
       lock: () => endSession('local'),
       signOutEverywhere: () => endSession('global'),
+      deleteAccount,
     }),
     [
       status,
@@ -349,6 +383,7 @@ export function AccessProvider({ children }: { children: ReactNode }) {
       verifyEmailCode,
       createWedding,
       endSession,
+      deleteAccount,
     ],
   )
 

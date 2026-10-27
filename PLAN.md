@@ -315,8 +315,15 @@ launch, so F pre-creates your Gmail as an auth user and Google sign-in links to 
     "Available / taken" check as the planner types uses `slug_available(slug)` (migration
     `20261027130000_slug_available.sql`; signed-in users only, returns only true/false; slugs
     are guessable by design). The unique constraint still decides on save.
-16. Delete my wedding and account: Edge Function (service role) hard-deletes the wedding's
-    rows, photos and the auth user after `ConfirmDialog`.
+16. ✅ Delete my wedding and account: Settings → "Danger zone" (planners only). The
+    `delete-account` Edge Function (service role) removes the wedding's photos, then the
+    wedding row (all rows cascade), then the auth user (planner rows cascade; sessions end).
+    Decided 2026-10-27: the planner types the web address to confirm, and the function checks
+    it against the wedding the account plans (409 on mismatch, e.g. a slug changed in another
+    tab); the same rule for every wedding, including `main` (no special protection); the
+    dialog links to Export first. An account with no wedding just loses the account, so a
+    retry after a part-failed run still finishes. Co-planners (later) would need a rule for
+    whether one planner can delete a shared wedding.
 
 **Phase 4: Abuse limits (before sign-ups open).**
 

@@ -24,6 +24,7 @@ import { DetailHeader } from '@/components/layout/DetailHeader'
 import { PageContainer } from '@/components/layout/PageContainer'
 import { Button } from '@/components/ui/button'
 import { legalTitles } from '@/features/legal/legal'
+import { DeleteAccountCard } from '@/features/settings/DeleteAccount'
 import type { LegalPageState } from '@/features/legal/LegalPage'
 import { SharingSettings, WebAddressForm } from '@/features/settings/SharingSettings'
 import { BudgetModeSetting, WeddingDetailsForm } from '@/features/settings/WeddingSettings'
@@ -205,6 +206,12 @@ export function SettingsPage() {
             hint="What we store and who can see it"
           />
         </Section>
+
+        {isPlanner && (
+          <Section title="Danger zone">
+            <DeleteAccountCard />
+          </Section>
+        )}
       </PageContainer>
     </>
   )

@@ -58,6 +58,10 @@ Done at go-live: env vars set in Vercel Production; Supabase public sign-ups dis
 - Browser end-to-end and accessibility scripts were written in a temporary scratchpad, not the
   repo, so they are gone after this session. Re-creating them as a committed Playwright suite
   (planner and guest walkthrough, axe audit) would make UI regressions catchable.
+- `npm run test:db` sits near Supabase Auth's limit of 30 code verifications per 5 minutes per
+  IP (the suite signs in about 25 times). Files sign in only the users they use
+  (`createFixture({ signIn })`); a "Request rate limit reached" failure means wait 5 minutes and
+  re-run, not raise the production limit.
 - No CI: Vercel builds on merge but runs no tests. Consider a GitHub Action running
   `npm run check` (and `test:db` with secrets) on PRs.
 - No service worker: installable, but no offline support.
@@ -103,8 +107,15 @@ shared link (`?next=`) offers "View this wedding". Settings has "Find another we
 amounts vs percentages, Copy/Reset share link), Web address (slug change; migration
 `20261027120000_editable_wedding_slug.sql`), and Terms/Privacy rows. See PLAN.md §13 step 15.
 
-**Next: step 16**, Delete my wedding and account (PLAN.md §13). The key rotation and Supabase Pro upgrade are
-deferred to the launch checklist (Phase 5), before public sign-ups are enabled.
+**Phase 3 step 16 (branch `phase3/delete-account`)**: Settings → "Danger zone" → "Delete
+wedding and account" (type the web address to confirm). Edge Function `delete-account`
+removes photos, the wedding (rows cascade) and the auth user. Terms/Privacy now point to it.
+Deploy the function separately (`supabase functions deploy delete-account`). See PLAN.md §13
+step 16. Phase 3 is complete with this.
+
+**Next: Phase 4, step 17** (AI usage limit per wedding; PLAN.md §13). The key rotation and
+Supabase Pro upgrade are deferred to the launch checklist (Phase 5), before public sign-ups
+are enabled.
 
 ## Unresolved decisions
 
