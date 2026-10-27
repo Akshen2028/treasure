@@ -302,8 +302,19 @@ launch, so F pre-creates your Gmail as an auth user and Google sign-in links to 
     redirect for returning visitors), except right after signing in there (planner → own
     wedding, via `signedInAt`) and for a shared link's `?next=` ("View this wedding", then on).
     Settings links back ("Find another wedding").
-15. Settings: visibility, Copy/Reset link, guest amounts vs percentages, rename and slug, Terms
-    and Privacy pages.
+15. ✅ Settings: "Sharing" (who can view: Public / Private = only people with the link; guests
+    see amounts or percentages; share link with Copy and, for Private, Reset), "Web address"
+    (slug; migration `20261027120000_editable_wedding_slug.sql` grants `update (slug)`, guarded
+    by RLS, the format check and the unique constraint), Terms and Privacy rows (Back returns to
+    Settings). Decided 2026-10-27: the share link carries `?k=` only for Private weddings (a
+    Public link stops working if the wedding goes Private); old slugs are not kept, so their
+    links stop working (the confirm dialog says so); two visibility options, not three
+    ("Private" already means anyone with the link). The share key is read separately
+    (`getShareKey`), never in the snapshot, so exports and the AI never see it. After a slug
+    change, `plannerSlugChanged()` moves planner access to the new address before navigating. A live
+    "Available / taken" check as the planner types uses `slug_available(slug)` (migration
+    `20261027130000_slug_available.sql`; signed-in users only, returns only true/false; slugs
+    are guessable by design). The unique constraint still decides on save.
 16. Delete my wedding and account: Edge Function (service role) hard-deletes the wedding's
     rows, photos and the auth user after `ConfirmDialog`.
 

@@ -40,6 +40,15 @@ export function weddingPaths(slug: string) {
 
 export type WeddingPaths = ReturnType<typeof weddingPaths>
 
+/**
+ * The link a planner shares. A Private wedding's link carries its share key (`?k=`); a Public
+ * one's doesn't, so it stops working if the wedding is made Private (decided 2026-10-27).
+ */
+export function shareLink(origin: string, slug: string, shareKey: string | null): string {
+  const url = `${origin}${weddingPaths(slug).home}`
+  return shareKey ? `${url}?k=${encodeURIComponent(shareKey)}` : url
+}
+
 /** A pathname without its `/w/{slug}` prefix (`/w/main/events/e1` → `/events/e1`). */
 export function screenPath(pathname: string): string {
   return pathname.replace(/^\/w\/[^/]+(?=\/|$)/, '') || '/'

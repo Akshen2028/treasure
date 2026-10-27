@@ -333,6 +333,8 @@ export function AccessProvider({ children }: { children: ReactNode }) {
       sendEmailCode,
       verifyEmailCode,
       createWedding,
+      // setPlannerSlug is stable; the updater keeps the slug unset outside planner mode.
+      plannerSlugChanged: (slug: string) => setPlannerSlug((current) => current && slug),
       lock: () => endSession('local'),
       signOutEverywhere: () => endSession('global'),
     }),

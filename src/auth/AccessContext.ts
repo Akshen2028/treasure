@@ -45,6 +45,11 @@ export type AccessContextValue = {
    * becomes planner of the new wedding.
    */
   createWedding: (name: string, weddingDate: string | null) => Promise<CreateWeddingResult>
+  /**
+   * Records that the planner's wedding moved to a new slug (after `changeSlug`), so planner
+   * controls follow it to the new address. Call it before navigating there.
+   */
+  plannerSlugChanged: (slug: string) => void
   /** Ends the planner session on this device only. */
   lock: () => Promise<void>
   /** Ends the planner session on every device. */

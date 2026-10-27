@@ -204,7 +204,8 @@ describe('planners', () => {
     },
   )
 
-  it('can change wedding settings but not its slug', async () => {
+  // Changing the slug is allowed since step 15; see guest-access.test.ts.
+  it('can change wedding settings', async () => {
     const mode = await f.plannerClient
       .from('weddings')
       .update({ budget_mode: 'manual', manual_budget_cents: 5_000_000 })
@@ -212,12 +213,6 @@ describe('planners', () => {
       .select('budget_mode')
       .single()
     expect(mode.data?.budget_mode).toBe('manual')
-
-    const slug = await f.plannerClient
-      .from('weddings')
-      .update({ slug: 'hijacked' })
-      .eq('id', f.weddingId)
-    expect(slug.error?.code).toBe(DENIED)
   })
 
   it('cannot hard-delete, even their own records', async () => {

@@ -2,10 +2,12 @@ import {
   ChevronRight,
   Eye,
   FileDown,
+  FileText,
   KeyRound,
   Lock,
   LogOut,
   type LucideIcon,
+  Scale,
   Search,
   ShieldCheck,
   Trash2,
@@ -21,6 +23,9 @@ import { WeddingDataBoundary } from '@/components/feedback/WeddingDataBoundary'
 import { DetailHeader } from '@/components/layout/DetailHeader'
 import { PageContainer } from '@/components/layout/PageContainer'
 import { Button } from '@/components/ui/button'
+import { legalTitles } from '@/features/legal/legal'
+import type { LegalPageState } from '@/features/legal/LegalPage'
+import { SharingSettings, WebAddressForm } from '@/features/settings/SharingSettings'
 import { BudgetModeSetting, WeddingDetailsForm } from '@/features/settings/WeddingSettings'
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
@@ -39,16 +44,19 @@ function LinkRow({
   icon: Icon,
   label,
   hint,
+  state,
 }: {
   to: string
   icon: LucideIcon
   label: string
   hint: string
+  state?: LegalPageState
 }) {
   return (
     <Link
       viewTransition
       to={to}
+      state={state}
       className="flex min-h-16 items-center gap-4 px-5 py-3 transition-colors hover:bg-muted/60 focus-visible:bg-muted/60 [&+&]:border-t"
     >
       <Icon className="size-5 shrink-0 text-gold" aria-hidden="true" />
@@ -145,8 +153,15 @@ export function SettingsPage() {
                 <Section title="Wedding">
                   <WeddingDetailsForm data={data} />
                   <div className="border-t">
+                    <WebAddressForm data={data} />
+                  </div>
+                  <div className="border-t">
                     <BudgetModeSetting data={data} />
                   </div>
+                </Section>
+
+                <Section title="Sharing">
+                  <SharingSettings data={data} />
                 </Section>
 
                 <Section title="Planner tools">
@@ -174,6 +189,20 @@ export function SettingsPage() {
             icon={Search}
             label="Find another wedding"
             hint="Search public weddings from the Wedonomics home page"
+          />
+          <LinkRow
+            to={appPaths.terms}
+            icon={FileText}
+            label={legalTitles.terms}
+            state={{ from: paths.settings }}
+            hint="The rules for using Wedonomics"
+          />
+          <LinkRow
+            to={appPaths.privacy}
+            icon={Scale}
+            label={legalTitles.privacy}
+            state={{ from: paths.settings }}
+            hint="What we store and who can see it"
           />
         </Section>
       </PageContainer>
