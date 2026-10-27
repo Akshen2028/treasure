@@ -296,8 +296,12 @@ launch, so F pre-creates your Gmail as an auth user and Google sign-in links to 
     controls show only on the wedding the account plans (`showsPlannerControls`); other
     weddings show the guest view. The welcome screen returns visitors to `?next=` (wedding
     URLs only), else the planner's wedding, else `main`.
-14. Landing page: search Public weddings, open as guest, "Continue with Google / email";
-    signed-in planners get "My wedding".
+14. ✅ Landing page at `/`: "Find a wedding" searches Public weddings (`search_weddings`, 3+
+    characters, debounced) and opens one as a guest; Continue with Google / Email; signed-in
+    planners get "My wedding". Decided 2026-10-27: `/` always shows the landing page (no
+    redirect for returning visitors), except right after signing in there (planner → own
+    wedding, via `signedInAt`) and for a shared link's `?next=` ("View this wedding", then on).
+    Settings links back ("Find another wedding").
 15. Settings: visibility, Copy/Reset link, guest amounts vs percentages, rename and slug, Terms
     and Privacy pages.
 16. Delete my wedding and account: Edge Function (service role) hard-deletes the wedding's

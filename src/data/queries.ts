@@ -1,4 +1,10 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import {
+  keepPreviousData,
+  skipToken,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from '@tanstack/react-query'
 import { useCallback, useMemo } from 'react'
 
 import { useWeddingRoute } from '@/app/WeddingContext'
@@ -58,6 +64,20 @@ export function useWeddingSnapshot() {
       audience === 'planner'
         ? repository.loadSnapshot(slug)
         : repository.loadGuestView(slug, shareKey),
+  })
+}
+
+/**
+ * Public weddings matching a landing-page search (`weddingSearchTerm`; null asks nothing).
+ * Keeps the last results on screen while the next term loads, so the list doesn't flicker.
+ */
+export function useWeddingSearch(term: string | null) {
+  const repository = useRepository()
+  return useQuery({
+    queryKey: ['wedding-search', term] as const,
+    queryFn: term === null ? skipToken : () => repository.searchWeddings(term),
+    placeholderData: keepPreviousData,
+    staleTime: 60_000,
   })
 }
 

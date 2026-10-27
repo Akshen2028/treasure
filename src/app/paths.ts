@@ -62,9 +62,3 @@ export function safeNext(next: string | null | undefined): string | null {
   if (!next || !/^\/w\/[^/?#\\]+(?:[/?#][^\\\s]*)?$/.test(next) || next.includes('//')) return null
   return next
 }
-
-/** Where the welcome screen sends someone who has entered: where they came from, else their
- * own wedding (planners) or the original one (until the landing page, PLAN.md §13 step 14). */
-export function entryPath(next: string | null, plannerSlug: string | null): string {
-  return safeNext(next) ?? paths.wedding(plannerSlug ?? LEGACY_SLUG)
-}

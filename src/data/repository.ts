@@ -17,6 +17,7 @@ import type {
   WeddingEvent,
   WeddingSnapshot,
 } from '@/domain/types'
+import type { WeddingSearchResult } from '@/domain/weddingSearch'
 
 /** Records that support soft deletion and restore. */
 export type SoftDeletableKind =
@@ -116,6 +117,8 @@ export interface WeddingRepository {
    * this fails with `WeddingNotFoundError`, exactly as if the wedding didn't exist.
    */
   loadGuestView(slug: string, shareKey: string | null): Promise<WeddingSnapshot>
+  /** Public weddings whose name or slug contains the term (at most 10); never private ones. */
+  searchWeddings(term: string): Promise<WeddingSearchResult[]>
 
   updateWedding(id: Id, patch: WeddingPatch): Promise<Wedding>
 

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { entryPath, legacyRedirect, paths, safeNext, screenPath, weddingPaths } from './paths'
+import { legacyRedirect, paths, safeNext, screenPath, weddingPaths } from './paths'
 
 describe('paths', () => {
   const p = weddingPaths('alex-sam')
@@ -72,16 +72,5 @@ describe('safeNext', () => {
       '/w/a/ b',
     ])
       expect(safeNext(next)).toBeNull()
-  })
-})
-
-describe('entryPath', () => {
-  it('returns to the wedding the visitor came for', () => {
-    expect(entryPath('/w/alex-sam/home?k=abc', 'main')).toBe('/w/alex-sam/home?k=abc')
-  })
-
-  it('otherwise opens the planner’s own wedding, or the original one for guests', () => {
-    expect(entryPath(null, 'alex-sam')).toBe('/w/alex-sam/home')
-    expect(entryPath('https://evil.test', null)).toBe('/w/main/home')
   })
 })
