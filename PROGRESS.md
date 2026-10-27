@@ -25,9 +25,9 @@ _Last updated: 2026-10-27. Keep this short and current; it is not a changelog (P
 
 ## Verification (2026-10-17, at PR #15/#16)
 
-- `npm run check`: typecheck, lint, format; 230 unit tests pass (369 at PR C, 2026-10-20; 426 at step 17). `npm run build` passes (entry
+- `npm run check`: typecheck, lint, format; 230 unit tests pass (369 at PR C, 2026-10-20; 426 at step 17; 443 at step 18). `npm run build` passes (entry
   chunk ≈152 kB gzip; Recharts split into the Home chunk).
-- `npm run test:db`: 91/91 integration tests pass (134/134 at PR C; 152/152 at step 17) (RLS, sessions, storage, data integrity).
+- `npm run test:db`: 91/91 integration tests pass (134/134 at PR C; 152/152 at step 17; 170/170 at step 18) (RLS, sessions, storage, data integrity).
 - Browser checks (ad-hoc Puppeteer scripts, see Tech debt): full planner and guest walkthrough
   17/17; axe accessibility audit clean on 26 phone and desktop screens; production build
   under `vercel.json` headers passed 8/8 with no CSP violations; live site loads as a guest.
@@ -120,8 +120,15 @@ the limit); the chat shows "N of 30 questions left today". Migration
 Decided 2026-10-27: no separate Anthropic workspace for now; the existing key and its $5
 prepaid credit are the spending cap (no top-ups). Revisit before sign-ups open.
 
-**Next: Phase 4, step 18** (record/photo caps per wedding, name/slug limits, slug
-blocklist; PLAN.md §13). The key rotation and Supabase Pro upgrade are deferred to the launch
+**Phase 4 step 18 (branch `phase4/limits`)**: per-wedding record caps (soft-deleted rows
+count), a storage file cap, wedding names up to 100 characters, and web address rules (3+
+characters, single hyphens, a reserved/offensive blocklist mirrored in `src/domain/slug.ts`).
+Migrations `20261027150000_wedding_limits.sql` and `20261027160000_blocked_slug_trigger_definer.sql`
+(fix: the blocked-address trigger must run as definer) pushed on 2026-10-27, ahead of the
+merge. See PLAN.md §13 step 18.
+
+**Next: Phase 4, step 19** (Supabase Auth rate limits; Vercel bot protection on the landing
+page). The key rotation and Supabase Pro upgrade are deferred to the launch
 checklist (Phase 5), before public sign-ups are enabled.
 
 ## Unresolved decisions

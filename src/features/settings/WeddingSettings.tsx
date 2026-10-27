@@ -12,6 +12,7 @@ import type { WeddingData } from '@/data/queries'
 import { manualBudgetsFromCalculated } from '@/domain/budget'
 import { centsToInput, formatCad, parseCadInput } from '@/domain/money'
 import type { BudgetMode } from '@/domain/types'
+import { WEDDING_NAME_MAX } from '@/features/onboarding/createWeddingForm'
 import { errorMessage } from '@/lib/errors'
 
 import { useSwitchBudgetMode, useUpdateWedding } from './mutations'
@@ -65,7 +66,11 @@ export function WeddingDetailsForm({ data }: { data: WeddingData }) {
   return (
     <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-4 p-5">
       <FormField label="Wedding name" error={errors.name}>
-        <Input value={name} onChange={(e) => setName(e.target.value)} maxLength={200} />
+        <Input
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          maxLength={WEDDING_NAME_MAX}
+        />
       </FormField>
       <FormField label="Wedding date" optional hint="Used for the countdown on the dashboard.">
         <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} />
