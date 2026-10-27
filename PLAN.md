@@ -327,9 +327,19 @@ launch, so F pre-creates your Gmail as an auth user and Google sign-in links to 
 
 **Phase 4: Abuse limits (before sign-ups open).**
 
-17. AI: usage table (server-write only) and per-wedding daily limit in `chat`; new Anthropic
+17. ✅ AI: usage table (server-write only) and per-wedding daily limit in `chat`; new Anthropic
     workspace "Wedonomics" with a monthly limit and its own key in `ANTHROPIC_API_KEY`.
-    _User steps provided when we get here._
+    Migration `20261027140000_ai_usage.sql`: `ai_usage` (one row per wedding per day; no API
+    role but `service_role` can touch it), `use_ai_question()` (service role only; counts
+    and checks in one statement) and `ai_usage_today()` (planners read their own count). The
+    `chat` function counts a question after the planner and request checks, before Claude,
+    with the built-in service role key, and answers 429 at the limit. Decided 2026-10-27: the
+    day is the America/Toronto calendar day; a question counts once accepted, even if the
+    answer fails or is stopped (no refunds); the limit comes from `ai_daily_limit(plan)`
+    (free = 30); the chat always shows "N of 30 questions left today" under the input and
+    disables sending at 0 (display only; the server enforces). Also decided 2026-10-27: the
+    separate Anthropic workspace is deferred; the existing key's $5 prepaid credit (no
+    top-ups) caps spending for now. Revisit before sign-ups open.
 18. Triggers capping records and photos per wedding; name/slug length limits and a reserved or
     offensive slug blocklist.
 19. Check Supabase Auth rate limits; Vercel bot protection on the landing page.

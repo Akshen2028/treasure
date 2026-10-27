@@ -170,6 +170,32 @@ export type Database = {
           },
         ]
       }
+      ai_usage: {
+        Row: {
+          day: string
+          questions: number
+          wedding_id: string
+        }
+        Insert: {
+          day: string
+          questions: number
+          wedding_id: string
+        }
+        Update: {
+          day?: string
+          questions?: number
+          wedding_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_usage_wedding_id_fkey"
+            columns: ["wedding_id"]
+            isOneToOne: false
+            referencedRelation: "weddings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       category_definitions: {
         Row: {
           created_at: string
@@ -435,6 +461,15 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      ai_daily_limit: { Args: { p_plan: string }; Returns: number }
+      ai_today: { Args: never; Returns: string }
+      ai_usage_today: {
+        Args: { p_wedding_id: string }
+        Returns: {
+          daily_limit: number
+          used: number
+        }[]
+      }
       budget_share: { Args: { amount: number; total: number }; Returns: number }
       create_my_wedding: {
         Args: { p_name: string; p_wedding_date?: string }
@@ -479,6 +514,14 @@ export type Database = {
       storage_object_wedding_id: {
         Args: { object_name: string }
         Returns: string
+      }
+      use_ai_question: {
+        Args: { p_wedding_id: string }
+        Returns: {
+          allowed: boolean
+          daily_limit: number
+          used: number
+        }[]
       }
       viewable_wedding_id: {
         Args: { p_share_key: string; p_slug: string }

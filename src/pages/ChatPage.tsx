@@ -10,7 +10,8 @@ import { DetailHeader } from '@/components/layout/DetailHeader'
 import { PageContainer } from '@/components/layout/PageContainer'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
-import { CHAT_LIMITS, CHAT_SUGGESTIONS } from '@/domain/chat'
+import { aiUsageNote, CHAT_LIMITS, CHAT_SUGGESTIONS, questionsLeft } from '@/domain/chat'
+import { useAiUsage } from '@/features/chat/aiUsage'
 import { ChatChart } from '@/features/chat/ChatChart'
 import { useChatSession } from '@/features/chat/ChatContext'
 import { ChatEditCard } from '@/features/chat/ChatEditCard'
@@ -38,6 +39,10 @@ function Conversation() {
   const streaming = status === 'streaming'
   // Room for one more question and its answer.
   const full = messages.length >= CHAT_LIMITS.messages - 1
+  const { data: usage } = useAiUsage(data?.snapshot.wedding.id)
+  // The server enforces the limit; this just saves asking a question it would refuse.
+  const outOfQuestions = usage !== undefined && questionsLeft(usage) === 0
+  const blocked = !data || full || outOfQuestions
 
   // Only the conversation scrolls: lock the page behind it, or iOS drags and bounces the
   // whole screen when a swipe reaches the end of the conversation.
@@ -64,7 +69,7 @@ function Conversation() {
   }
 
   function ask(question: string) {
-    if (!question.trim() || streaming || full) return
+    if (!question.trim() || streaming || blocked) return
     setDraft('')
     scrollToLatest()
     void send(question)
@@ -195,9 +200,11 @@ function Conversation() {
                 <CircleAlert className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
                 {error.message}
               </p>
-              <Button variant="outline" size="sm" onClick={() => ask(error.question)}>
-                Try again
-              </Button>
+              {!outOfQuestions && (
+                <Button variant="outline" size="sm" onClick={() => ask(error.question)}>
+                  Try again
+                </Button>
+              )}
             </div>
           )}
 
@@ -210,7 +217,12 @@ function Conversation() {
       </div>
 
       <form onSubmit={submit} className="border-t bg-background/95 backdrop-blur-md">
-        <div className="mx-auto flex w-full max-w-3xl items-end gap-2 px-4 pt-3 pb-[calc(env(safe-area-inset-bottom)+0.75rem)] sm:px-6">
+        <div
+          className={cn(
+            'mx-auto flex w-full max-w-3xl items-end gap-2 px-4 pt-3 sm:px-6',
+            usage ? 'pb-1.5' : 'pb-[calc(env(safe-area-inset-bottom)+0.75rem)]',
+          )}
+        >
           <label htmlFor="chat-question" className="sr-only">
             Your question
           </label>
@@ -223,7 +235,8 @@ function Conversation() {
             onFocus={scrollToLatest}
             placeholder={full ? 'Start a new chat' : 'Ask a question…'}
             maxLength={CHAT_LIMITS.questionChars}
-            disabled={!data || full}
+            disabled={blocked}
+            aria-describedby={usage ? 'chat-usage' : undefined}
             rows={1}
             className="max-h-36 min-h-11 resize-none"
           />
@@ -237,13 +250,21 @@ function Conversation() {
               type="submit"
               size="icon"
               className="size-11"
-              disabled={!draft.trim() || !data || full}
+              disabled={!draft.trim() || blocked}
             >
               <ArrowUp aria-hidden="true" />
               <span className="sr-only">Send</span>
             </Button>
           )}
         </div>
+        {usage && (
+          <p
+            id="chat-usage"
+            className="mx-auto w-full max-w-3xl px-4 pb-[calc(env(safe-area-inset-bottom)+0.5rem)] text-xs text-muted-foreground sm:px-6"
+          >
+            {aiUsageNote(usage)}
+          </p>
+        )}
       </form>
     </div>
   )

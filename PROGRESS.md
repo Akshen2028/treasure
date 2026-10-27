@@ -25,9 +25,9 @@ _Last updated: 2026-10-27. Keep this short and current; it is not a changelog (P
 
 ## Verification (2026-10-17, at PR #15/#16)
 
-- `npm run check`: typecheck, lint, format; 230 unit tests pass (369 at PR C, 2026-10-20). `npm run build` passes (entry
+- `npm run check`: typecheck, lint, format; 230 unit tests pass (369 at PR C, 2026-10-20; 426 at step 17). `npm run build` passes (entry
   chunk ≈152 kB gzip; Recharts split into the Home chunk).
-- `npm run test:db`: 91/91 integration tests pass (134/134 at PR C) (RLS, sessions, storage, data integrity).
+- `npm run test:db`: 91/91 integration tests pass (134/134 at PR C; 152/152 at step 17) (RLS, sessions, storage, data integrity).
 - Browser checks (ad-hoc Puppeteer scripts, see Tech debt): full planner and guest walkthrough
   17/17; axe accessibility audit clean on 26 phone and desktop screens; production build
   under `vercel.json` headers passed 8/8 with no CSP violations; live site loads as a guest.
@@ -113,9 +113,16 @@ removes photos, the wedding (rows cascade) and the auth user. Terms/Privacy now 
 Deploy the function separately (`supabase functions deploy delete-account`). See PLAN.md §13
 step 16. Phase 3 is complete with this.
 
-**Next: Phase 4, step 17** (AI usage limit per wedding; PLAN.md §13). The key rotation and
-Supabase Pro upgrade are deferred to the launch checklist (Phase 5), before public sign-ups
-are enabled.
+**Phase 4 step 17 (branch `phase4/ai-limit`)**: 30 assistant questions per wedding per day
+(Toronto day), counted server-side in `chat` (`use_ai_question`, service role only; 429 at
+the limit); the chat shows "N of 30 questions left today". Migration
+`20261027140000_ai_usage.sql` pushed and `chat` redeployed on 2026-10-27, ahead of the merge.
+Decided 2026-10-27: no separate Anthropic workspace for now; the existing key and its $5
+prepaid credit are the spending cap (no top-ups). Revisit before sign-ups open.
+
+**Next: Phase 4, step 18** (record/photo caps per wedding, name/slug limits, slug
+blocklist; PLAN.md §13). The key rotation and Supabase Pro upgrade are deferred to the launch
+checklist (Phase 5), before public sign-ups are enabled.
 
 ## Unresolved decisions
 

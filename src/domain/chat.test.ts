@@ -1,6 +1,13 @@
 import { describe, expect, it } from 'vitest'
 
-import { CHAT_LIMITS, parseStreamChunk, validateChatRequest } from './chat'
+import {
+  aiLimitMessage,
+  aiUsageNote,
+  CHAT_LIMITS,
+  parseStreamChunk,
+  questionsLeft,
+  validateChatRequest,
+} from './chat'
 
 const weddingId = '7d3f2a10-1b2c-4d5e-8f90-123456789abc'
 const valid = {
@@ -105,5 +112,26 @@ describe('parseStreamChunk', () => {
     expect(parseStreamChunk('\nnot json\n{"no":"type"}\n{"type":"done"}\n').events).toEqual([
       { type: 'done' },
     ])
+  })
+})
+
+describe('AI usage', () => {
+  it('counts questions left, never below zero', () => {
+    expect(questionsLeft({ used: 2, limit: 30 })).toBe(28)
+    expect(questionsLeft({ used: 31, limit: 30 })).toBe(0)
+  })
+
+  it('describes what is left today', () => {
+    expect(aiUsageNote({ used: 0, limit: 30 })).toBe('30 of 30 questions left today')
+    expect(aiUsageNote({ used: 29, limit: 30 })).toBe('1 of 30 questions left today')
+    expect(aiUsageNote({ used: 30, limit: 30 })).toBe(
+      'No questions left today. More after midnight (Toronto time).',
+    )
+  })
+
+  it('names the limit when it is reached', () => {
+    expect(aiLimitMessage(30)).toBe(
+      'You’ve used today’s 30 questions. More after midnight (Toronto time).',
+    )
   })
 })
