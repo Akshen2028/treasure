@@ -3,7 +3,7 @@ import { Check, Copy, Download, Sparkles } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { toast } from 'sonner'
 
-import { paths } from '@/app/paths'
+import { useWeddingPaths } from '@/app/WeddingContext'
 import { PlannerOnly } from '@/components/auth/PlannerOnly'
 import { WeddingDataBoundary } from '@/components/feedback/WeddingDataBoundary'
 import { SegmentedControl } from '@/components/forms/SegmentedControl'
@@ -173,6 +173,7 @@ function FreshData({ children }: { children: (data: WeddingData) => React.ReactN
 }
 
 export function AiExportPage() {
+  const paths = useWeddingPaths()
   return (
     <>
       <DetailHeader backTo={paths.settings} backLabel="Settings" title="Export for AI" />

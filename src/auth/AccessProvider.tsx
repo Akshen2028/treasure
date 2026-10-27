@@ -107,6 +107,8 @@ function completeOAuthRedirect(): Promise<RedirectOutcome> {
 export function AccessProvider({ children }: { children: ReactNode }) {
   const [status, setStatus] = useState<'initializing' | 'ready'>('initializing')
   const [mode, setMode] = useState<AccessMode>('unset')
+  // The wedding the signed-in planner plans; null when not signed in as a planner.
+  const [plannerSlug, setPlannerSlug] = useState<string | null>(null)
   // A session exists but couldn't be verified (e.g. offline); retry when possible.
   const pendingVerification = useRef(false)
   // Set while this tab signs in, so the SIGNED_IN event doesn't verify a second time.
@@ -117,20 +119,22 @@ export function AccessProvider({ children }: { children: ReactNode }) {
   /** Checks the current session with the server and sets the mode accordingly. */
   const applyVerification = useCallback(async () => {
     const result = await verifyPlanner()
-    if (result === 'planner') {
+    if (result.kind === 'planner') {
       pendingVerification.current = false
       markEntered()
+      setPlannerSlug(result.slug)
       setMode('planner')
-    } else if (result === 'not-planner') {
+    } else if (result.kind === 'not-planner') {
       pendingVerification.current = false
       await supabase.auth.signOut({ scope: 'local' })
+      setPlannerSlug(null)
       setMode(fallbackMode())
     } else {
       // Unreachable: stay read-only for now, keep the session, and try again later.
       pendingVerification.current = true
       setMode(fallbackMode() === 'unset' ? 'guest' : fallbackMode())
     }
-    return result
+    return result.kind
   }, [fallbackMode])
 
   // Restore a saved session on load, first completing a Google sign-in if we just returned.
@@ -167,7 +171,10 @@ export function AccessProvider({ children }: { children: ReactNode }) {
     const { data } = supabase.auth.onAuthStateChange((event) => {
       // Supabase advises against awaiting its own calls inside this callback.
       if (event === 'SIGNED_OUT') {
-        setTimeout(() => setMode(fallbackMode()), 0)
+        setTimeout(() => {
+          setPlannerSlug(null)
+          setMode(fallbackMode())
+        }, 0)
       } else if (event === 'SIGNED_IN' && !signingIn.current) {
         setTimeout(() => void applyVerification(), 0)
       }
@@ -262,6 +269,7 @@ export function AccessProvider({ children }: { children: ReactNode }) {
       if (error && scope === 'global') {
         await supabase.auth.signOut({ scope: 'local' })
       }
+      setPlannerSlug(null)
       setMode(fallbackMode() === 'unset' ? 'guest' : fallbackMode())
     },
     [fallbackMode],
@@ -271,7 +279,7 @@ export function AccessProvider({ children }: { children: ReactNode }) {
     () => ({
       status,
       mode,
-      isPlanner: mode === 'planner',
+      plannerSlug: mode === 'planner' ? plannerSlug : null,
       continueAsGuest,
       signInWithGoogle,
       sendEmailCode,
@@ -279,7 +287,16 @@ export function AccessProvider({ children }: { children: ReactNode }) {
       lock: () => endSession('local'),
       signOutEverywhere: () => endSession('global'),
     }),
-    [status, mode, continueAsGuest, signInWithGoogle, sendEmailCode, verifyEmailCode, endSession],
+    [
+      status,
+      mode,
+      plannerSlug,
+      continueAsGuest,
+      signInWithGoogle,
+      sendEmailCode,
+      verifyEmailCode,
+      endSession,
+    ],
   )
 
   return <AccessContext value={value}>{children}</AccessContext>

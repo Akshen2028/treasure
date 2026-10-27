@@ -1,7 +1,7 @@
 import { Search, Settings } from 'lucide-react'
 import { Link } from 'react-router'
 
-import { paths } from '@/app/paths'
+import { useWeddingPaths } from '@/app/WeddingContext'
 import { useAccess } from '@/auth/AccessContext'
 import { Wordmark } from '@/components/brand/Wordmark'
 import { Button } from '@/components/ui/button'
@@ -10,6 +10,7 @@ import { cn } from '@/lib/utils'
 
 /** Top bar for the dashboard: brand on the left, search and settings on the right. */
 export function AppHeader() {
+  const paths = useWeddingPaths()
   const { isPlanner } = useAccess()
   useDocumentTitle()
   return (

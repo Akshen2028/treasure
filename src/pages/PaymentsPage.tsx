@@ -2,7 +2,7 @@ import { CircleOff, Plus, ReceiptText } from 'lucide-react'
 import { useState } from 'react'
 import { Link, useParams } from 'react-router'
 
-import { paths } from '@/app/paths'
+import { useWeddingPaths } from '@/app/WeddingContext'
 import { useAccess } from '@/auth/AccessContext'
 import { EmptyState } from '@/components/feedback/EmptyState'
 import { WeddingDataBoundary } from '@/components/feedback/WeddingDataBoundary'
@@ -27,6 +27,7 @@ function PaymentsContent({
   categoryId,
   activityId,
 }: { data: WeddingData } & Params) {
+  const paths = useWeddingPaths()
   const { isPlanner } = useAccess()
   // Guests in percentage mode see when each payment was made, not how much.
   const shares = data.showsShares
@@ -171,6 +172,7 @@ function PaymentsContent({
 }
 
 export function PaymentsPage() {
+  const paths = useWeddingPaths()
   const { eventId = '', categoryId = '', activityId = '' } = useParams()
   return (
     <WeddingDataBoundary

@@ -20,6 +20,4 @@ export const env = {
    * Without it no check is shown; Supabase then refuses sign-ins if its captcha is on.
    */
   turnstileSiteKey: import.meta.env.VITE_TURNSTILE_SITE_KEY || null,
-  /** Which wedding this app shows. */
-  weddingSlug: import.meta.env.VITE_WEDDING_SLUG || 'main',
 } as const

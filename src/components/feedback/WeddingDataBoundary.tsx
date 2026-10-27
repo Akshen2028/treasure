@@ -1,4 +1,4 @@
-import { Sparkles } from 'lucide-react'
+import { SearchX } from 'lucide-react'
 import type { ReactNode } from 'react'
 
 import { PageContainer } from '@/components/layout/PageContainer'
@@ -39,9 +39,9 @@ export function WeddingDataBoundary({
   if (error instanceof WeddingNotFoundError) {
     return frame(
       <EmptyState
-        icon={Sparkles}
-        title="Wedding not set up yet"
-        description="A planner needs to run the setup script before the wedding can be shown."
+        icon={SearchX}
+        title="Wedding not found"
+        description="Check the link. A private wedding opens only from the link its planners share."
         className="my-8"
       />,
     )

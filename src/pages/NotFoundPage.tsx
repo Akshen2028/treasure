@@ -16,8 +16,8 @@ export function NotFoundPage() {
         description="This page doesn't exist or may have been moved."
         action={
           <Button asChild>
-            <Link viewTransition to={paths.home}>
-              Back to dashboard
+            <Link viewTransition to={paths.welcome}>
+              Back to the start
             </Link>
           </Button>
         }

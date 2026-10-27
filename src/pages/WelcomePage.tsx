@@ -1,8 +1,8 @@
 import { ChevronLeft, Eye, Mail } from 'lucide-react'
 import { useState } from 'react'
-import { Navigate } from 'react-router'
+import { Navigate, useSearchParams } from 'react-router'
 
-import { paths } from '@/app/paths'
+import { entryPath } from '@/app/paths'
 import { useAccess } from '@/auth/AccessContext'
 import { EmailSignInForm } from '@/components/auth/EmailSignInForm'
 import { GoogleSignInButton } from '@/components/auth/GoogleSignInButton'
@@ -12,13 +12,16 @@ import { Button } from '@/components/ui/button'
 import { useDocumentTitle } from '@/hooks/useDocumentTitle'
 
 export function WelcomePage() {
-  const { status, mode, continueAsGuest } = useAccess()
+  const { status, mode, plannerSlug, continueAsGuest } = useAccess()
+  const [searchParams] = useSearchParams()
   const [showEmailForm, setShowEmailForm] = useState(false)
   useDocumentTitle('Welcome')
 
   if (status === 'initializing') return <SplashScreen />
-  // Returning visitors, and anyone who just chose, go straight to the dashboard.
-  if (mode !== 'unset') return <Navigate to={paths.home} replace />
+  // Returning visitors, and anyone who just chose, go on to a wedding.
+  if (mode !== 'unset') {
+    return <Navigate to={entryPath(searchParams.get('next'), plannerSlug)} replace />
+  }
 
   return (
     <main className="relative grid min-h-dvh place-items-center overflow-hidden px-6 pt-safe pb-safe">

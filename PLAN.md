@@ -17,7 +17,7 @@ the section you need. Status markers: ✅ implemented · 🟡 partial · 📋 pl
 Wedding → Events → Categories → Activities → Payments (+ activity links and photos).
 
 - **Wedding:** name, date (drives a live countdown, to the second), budget mode, manual
-  total budget. One wedding per deployment, chosen by `VITE_WEDDING_SLUG` (schema supports more).
+  total budget. Each wedding lives at `/w/{slug}/...` (PLAN.md §13).
 - **Event:** name, optional date, location, description, cover photo, manual budget; ordered.
 - **Category definitions** are shared across the wedding: 7 defaults (Food, Decor,
   Entertainment, Venue, Outfits, Photographer, Videographer) plus custom ones. An event's
@@ -285,8 +285,14 @@ launch, so F pre-creates your Gmail as an auth user and Google sign-in links to 
 
 **Phase 3: Multi-wedding app.**
 
-13. Routes under `/w/:slug/...` (via `paths.ts`); redirects from old URLs to `main`; remove
-    `VITE_WEDDING_SLUG`; query keys by wedding id.
+13. ✅ Routes under `/w/:slug/...` (`weddingPaths()` / `useWeddingPaths()` in `paths.ts`,
+    `WeddingLayout`); old URLs (`/home`, `/events/…`) redirect to `main`; `VITE_WEDDING_SLUG`
+    removed. Decided: query keys stay keyed by slug (+ audience, + share key for guests), since
+    the database loads by slug and a slug change changes the URL anyway. A private wedding's
+    `?k=` key is remembered per slug in localStorage (convenience; the DB checks it). Planner
+    controls show only on the wedding the account plans (`showsPlannerControls`); other
+    weddings show the guest view. The welcome screen returns visitors to `?next=` (wedding
+    URLs only), else the planner's wedding, else `main`.
 14. Landing page: search Public weddings, open as guest, "Continue with Google / email";
     signed-in planners get "My wedding".
 15. Settings: visibility, Copy/Reset link, guest amounts vs percentages, rename and slug, Terms

@@ -1,7 +1,9 @@
 import { describe, expect, it } from 'vitest'
 
 import { navDirection } from './pageTransitions'
-import { paths } from './paths'
+import { paths as appPaths, weddingPaths } from './paths'
+
+const paths = { welcome: appPaths.welcome, ...weddingPaths('alex-sam') }
 
 describe('navDirection', () => {
   it('slides forward when drilling into the hierarchy', () => {
@@ -30,5 +32,11 @@ describe('navDirection', () => {
     expect(navDirection(paths.home, paths.chat)).toBe('up')
     expect(navDirection(paths.activity('e1', 'c1', 'a1'), paths.chat)).toBe('up')
     expect(navDirection(paths.chat, paths.category('e1', 'c1'))).toBe('down')
+  })
+
+  it('ignores the wedding prefix when measuring depth', () => {
+    expect(navDirection('/home', paths.home)).toBe('fade')
+    expect(navDirection(paths.home, '/w/a-chat/events/e1')).toBe('forward')
+    expect(navDirection(paths.home, '/w/chat/home')).toBe('fade')
   })
 })

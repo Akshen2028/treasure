@@ -3,7 +3,7 @@ import { type FormEvent, type KeyboardEvent, useLayoutEffect, useRef, useState }
 import { useLocation } from 'react-router'
 
 import { isViewTransitionRecent } from '@/app/pageTransitions'
-import { paths } from '@/app/paths'
+import { useWeddingPaths } from '@/app/WeddingContext'
 import { useAccess } from '@/auth/AccessContext'
 import { PlannerOnly } from '@/components/auth/PlannerOnly'
 import { DetailHeader } from '@/components/layout/DetailHeader'
@@ -19,6 +19,7 @@ import { cn } from '@/lib/utils'
 
 /** Where the back button goes: the screen the chat was opened from, else Home. */
 function useBackTarget() {
+  const paths = useWeddingPaths()
   const state: unknown = useLocation().state
   const from =
     typeof state === 'object' && state !== null && 'from' in state ? state.from : undefined
@@ -249,6 +250,7 @@ function Conversation() {
 }
 
 export function ChatPage() {
+  const paths = useWeddingPaths()
   const { isPlanner } = useAccess()
   if (isPlanner) return <Conversation />
   return (

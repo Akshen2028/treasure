@@ -1,6 +1,6 @@
 import type { DataRouter } from 'react-router'
 
-import { paths } from './paths'
+import { screenPath } from './paths'
 
 /**
  * Page-to-page animation. Links and navigate() calls opt in with `viewTransition`, React Router
@@ -9,7 +9,9 @@ import { paths } from './paths'
  */
 export type NavDirection = 'forward' | 'back' | 'fade' | 'up' | 'down'
 
-const depth = (pathname: string) => pathname.split('/').filter(Boolean).length
+/** How deep a screen is within its wedding (the `/w/{slug}` prefix doesn't count). */
+const depth = (pathname: string) => screenPath(pathname).split('/').filter(Boolean).length
+const isChat = (pathname: string) => screenPath(pathname) === '/chat'
 
 /**
  * Drilling into the hierarchy (event → category → activity) slides forward, going up slides
@@ -17,8 +19,8 @@ const depth = (pathname: string) => pathname.split('/').filter(Boolean).length
  * assistant opens over any screen like a sheet, so it rises up and drops back down.
  */
 export function navDirection(fromPathname: string, toPathname: string): NavDirection {
-  if (toPathname === paths.chat) return 'up'
-  if (fromPathname === paths.chat) return 'down'
+  if (isChat(toPathname)) return 'up'
+  if (isChat(fromPathname)) return 'down'
   const from = depth(fromPathname)
   const to = depth(toPathname)
   if (to > from) return 'forward'

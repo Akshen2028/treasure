@@ -1,6 +1,6 @@
 # Progress and handoff
 
-_Last updated: 2026-10-21. Keep this short and current; it is not a changelog (PRs are)._
+_Last updated: 2026-10-26. Keep this short and current; it is not a changelog (PRs are)._
 
 ## Status
 
@@ -83,8 +83,13 @@ planner is `wonderlustasaj@gmail.com`, linked to Google and email. Sign-ups stay
 only that account can sign in. LAN phone testing can't sign in (Google allowlist and Turnstile
 reject IP hosts).
 
+**Phase 3 step 13 (branch `phase3/wedding-routes`)**: every screen lives under `/w/:slug/...`;
+old URLs redirect to `/w/main/...`; `VITE_WEDDING_SLUG` is gone (delete it in Vercel after the
+merge; the seed script uses `SEED_SLUG`, default `main`). See PLAN.md §13 step 13.
+
 **Next: step 11**, the first-run "Create your wedding" screen (calls `create_my_wedding`) with the
-Terms/Privacy consent line. The key rotation and Supabase Pro upgrade are deferred to the launch
+Terms/Privacy consent line (plus draft Terms/Privacy pages). It must stop `AccessProvider`
+signing out accounts with no wedding, and send new couples to `/w/<slug>/home`. The key rotation and Supabase Pro upgrade are deferred to the launch
 checklist (Phase 5), before public sign-ups are enabled.
 
 ## Unresolved decisions

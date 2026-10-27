@@ -50,6 +50,7 @@ describe('runEditSteps', () => {
     const result = await runEditSteps(
       repository,
       'w1',
+      'main',
       [
         { op: 'create_event', as: 'N1', input: { name: 'Sangeet' } },
         {
@@ -83,6 +84,7 @@ describe('runEditSteps', () => {
     const { undo } = await runEditSteps(
       repository,
       'w1',
+      'main',
       [
         { op: 'update_activity', id: 'a1', patch: { budgetCents: 5 }, before: { budgetCents: 3 } },
         { op: 'add_category', as: null, event: { id: 'e1' }, definitionId: null, newName: 'Music' },
@@ -105,6 +107,7 @@ describe('runEditSteps', () => {
     const result = await runEditSteps(
       repository,
       'w1',
+      'main',
       [
         { op: 'update_event', id: 'e1', patch: { name: 'B' }, before: { name: 'A' } },
         {
@@ -136,7 +139,7 @@ describe('runEditSteps', () => {
           input: { name: 'Photobooth', budgetCents: 100000 },
         },
       ],
-      { kind: 'activity', path: '/events/e1/categories/new1/activities/new2' },
+      { kind: 'activity', path: '/w/main/events/e1/categories/new1/activities/new2' },
     ],
     [
       'a payment on an existing activity',
@@ -149,17 +152,17 @@ describe('runEditSteps', () => {
           note: '',
         },
       ],
-      { kind: 'activity', path: '/events/e1/categories/c1/activities/a1' },
+      { kind: 'activity', path: '/w/main/events/e1/categories/c1/activities/a1' },
     ],
     [
       'an edited payment',
       [{ op: 'update_payment', id: 'p1', patch: { note: 'x' }, before: { note: '' } }],
-      { kind: 'activity', path: '/events/e1/categories/c1/activities/a1' },
+      { kind: 'activity', path: '/w/main/events/e1/categories/c1/activities/a1' },
     ],
     [
       'a deleted activity (shows where it was)',
       [{ op: 'delete', kind: 'activity', id: 'a1', label: 'a1' }],
-      { kind: 'category', path: '/events/e1/categories/c1' },
+      { kind: 'category', path: '/w/main/events/e1/categories/c1' },
     ],
     [
       'an event edit after an activity edit (the last change wins)',
@@ -167,7 +170,7 @@ describe('runEditSteps', () => {
         { op: 'update_activity', id: 'a1', patch: { name: 'x' }, before: { name: 'a1' } },
         { op: 'update_event', id: 'e1', patch: { name: 'y' }, before: { name: 'e1' } },
       ],
-      { kind: 'event', path: '/events/e1' },
+      { kind: 'event', path: '/w/main/events/e1' },
     ],
     [
       'a wedding-wide change',
@@ -178,7 +181,8 @@ describe('runEditSteps', () => {
     const result = await runEditSteps(
       fakeRepositoryWithParents(),
       'w1',
-      steps as unknown as Parameters<typeof runEditSteps>[2],
+      'main',
+      steps as unknown as Parameters<typeof runEditSteps>[3],
       snapshot,
     )
     expect(result.error).toBeUndefined()

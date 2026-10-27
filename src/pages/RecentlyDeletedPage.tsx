@@ -13,7 +13,7 @@ import {
 import { useState } from 'react'
 import { toast } from 'sonner'
 
-import { paths } from '@/app/paths'
+import { useWeddingPaths } from '@/app/WeddingContext'
 import { PlannerOnly } from '@/components/auth/PlannerOnly'
 import { EmptyState } from '@/components/feedback/EmptyState'
 import { WeddingDataBoundary } from '@/components/feedback/WeddingDataBoundary'
@@ -146,6 +146,7 @@ function DeletedList({ data }: { data: WeddingData }) {
 }
 
 export function RecentlyDeletedPage() {
+  const paths = useWeddingPaths()
   return (
     <>
       <DetailHeader backTo={paths.settings} backLabel="Settings" title="Recently Deleted" />

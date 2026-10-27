@@ -22,8 +22,8 @@ export function RouteError() {
         description={description}
         action={
           <Button asChild>
-            <Link viewTransition to={paths.home}>
-              Back to dashboard
+            <Link viewTransition to={paths.welcome}>
+              Back to the start
             </Link>
           </Button>
         }
