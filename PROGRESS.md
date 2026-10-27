@@ -99,8 +99,11 @@ weddings and open one as a guest; Google / email sign-in; "My wedding" for plann
 longer redirects returning visitors; a fresh sign-in there goes to the planner's wedding, and a
 shared link (`?next=`) offers "View this wedding". Settings has "Find another wedding".
 
-**Next: step 15**, Settings: visibility, Copy/Reset link, guest amounts vs percentages, rename
-and slug (PLAN.md §13). The key rotation and Supabase Pro upgrade are
+**Phase 3 step 15 (branch `phase3/settings`)**: Settings has Sharing (Public/Private, guest
+amounts vs percentages, Copy/Reset share link), Web address (slug change; migration
+`20261027120000_editable_wedding_slug.sql`), and Terms/Privacy rows. See PLAN.md §13 step 15.
+
+**Next: step 16**, Delete my wedding and account (PLAN.md §13). The key rotation and Supabase Pro upgrade are
 deferred to the launch checklist (Phase 5), before public sign-ups are enabled.
 
 ## Unresolved decisions

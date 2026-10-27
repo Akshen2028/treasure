@@ -168,8 +168,20 @@ export interface WeddingRepository {
     paths: string[]
   }): Promise<Record<string, string>>
 
+  /** The wedding's current share key, kept out of the snapshot. Planners only. */
+  getShareKey(weddingId: Id): Promise<string>
   /** Issues a new share key; links with the old one stop working. Planners only. */
   resetShareKey(weddingId: Id): Promise<string>
+  /**
+   * Changes the wedding's web address; links with the old slug stop working. Planners only.
+   * Rejects with reason `conflict` if another wedding has it.
+   */
+  changeSlug(weddingId: Id, slug: string): Promise<void>
+  /**
+   * Whether no wedding has this web address yet (signed-in users only). Advisory: saving
+   * can still fail with `conflict` if someone takes it first.
+   */
+  isSlugAvailable(slug: string): Promise<boolean>
 
   /** Marks a record deleted. Its children are hidden, not modified. */
   softDelete(kind: SoftDeletableKind, id: Id): Promise<void>

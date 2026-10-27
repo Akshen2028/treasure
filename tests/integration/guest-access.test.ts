@@ -213,6 +213,69 @@ describe('settings and share keys', () => {
     expect(asPlanner.error?.code).toBe(DENIED)
   })
 
+  it('lets planners read their own share key, and nobody else', async () => {
+    expect(await planner.getShareKey(f.weddingId)).toBe(await shareKey())
+    await expect(outsider.getShareKey(f.weddingId)).rejects.toThrow()
+    await expect(planner.getShareKey(f.otherWeddingId)).rejects.toThrow()
+    const { error } = await f.guest.from('weddings').select('share_key').eq('id', f.weddingId)
+    expect(error?.code).toBe(DENIED)
+  })
+
+  it('lets planners change the web address; the old one stops working', async () => {
+    const moved = `${f.weddingSlug}-moved`
+    await setWedding({ visibility: 'public' })
+    try {
+      await planner.changeSlug(f.weddingId, moved)
+      expect((await guest.loadGuestView(moved, null)).wedding.id).toBe(f.weddingId)
+      await expect(guest.loadGuestView(f.weddingSlug, null)).rejects.toBeInstanceOf(
+        WeddingNotFoundError,
+      )
+    } finally {
+      await f.admin.from('weddings').update({ slug: f.weddingSlug }).eq('id', f.weddingId)
+    }
+  })
+
+  it('refuses a web address that is taken or malformed', async () => {
+    const { data: other } = await f.admin
+      .from('weddings')
+      .select('slug')
+      .eq('id', f.otherWeddingId)
+      .single()
+    await expect(planner.changeSlug(f.weddingId, other!.slug)).rejects.toMatchObject({
+      reason: 'conflict',
+    })
+    for (const bad of ['Has Caps', '-leading', 'x'.repeat(64)]) {
+      await expect(planner.changeSlug(f.weddingId, bad)).rejects.toMatchObject({
+        reason: 'invalid',
+      })
+    }
+  })
+
+  it('tells signed-in users whether a web address is free, and nothing more', async () => {
+    const { data: other } = await f.admin
+      .from('weddings')
+      .select('slug')
+      .eq('id', f.otherWeddingId)
+      .single()
+    expect(await planner.isSlugAvailable(other!.slug)).toBe(false)
+    expect(await outsider.isSlugAvailable(f.weddingSlug)).toBe(false)
+    expect(await planner.isSlugAvailable(`${f.weddingSlug}-free`)).toBe(true)
+    expect(await planner.isSlugAvailable('Not Valid')).toBe(false)
+    const { error } = await f.guest.rpc('slug_available', { p_slug: f.weddingSlug })
+    expect(error).not.toBeNull()
+  })
+
+  it('refuses web address changes from outsiders and guests', async () => {
+    await expect(outsider.changeSlug(f.weddingId, 'test-hijacked')).rejects.toMatchObject({
+      reason: 'forbidden',
+    })
+    await expect(guest.changeSlug(f.weddingId, 'test-hijacked')).rejects.toMatchObject({
+      reason: 'forbidden',
+    })
+    const { data } = await f.admin.from('weddings').select('slug').eq('id', f.weddingId).single()
+    expect(data!.slug).toBe(f.weddingSlug)
+  })
+
   it('keeps internal helpers away from the public key', async () => {
     const helpers = [
       ['viewable_wedding_id', { p_slug: f.weddingSlug, p_share_key: null }],

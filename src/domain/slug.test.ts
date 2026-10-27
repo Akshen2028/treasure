@@ -1,6 +1,14 @@
 import { describe, expect, it } from 'vitest'
 
-import { FALLBACK_SLUG, SLUG_BASE_MAX, SLUG_PATTERN, slugCandidate, slugify } from './slug'
+import {
+  FALLBACK_SLUG,
+  SLUG_BASE_MAX,
+  SLUG_MAX,
+  SLUG_PATTERN,
+  slugCandidate,
+  slugError,
+  slugify,
+} from './slug'
 
 describe('slugify', () => {
   it.each([
@@ -39,5 +47,22 @@ describe('slugCandidate', () => {
       'alex-sam-2',
       'alex-sam-3',
     ])
+  })
+})
+
+describe('slugError', () => {
+  it.each(['alex-sam', 'a', '2027-priya', 'x'.repeat(SLUG_MAX)])('accepts %j', (slug) => {
+    expect(slugError(slug)).toBeNull()
+  })
+
+  it.each([
+    ['', 'Enter a web address.'],
+    ['x'.repeat(SLUG_MAX + 1), 'Keep it to 63 characters or fewer.'],
+    ['-alex', expect.stringContaining('lower-case')],
+    ['alex sam', expect.stringContaining('lower-case')],
+    ['Alex', expect.stringContaining('lower-case')],
+    ['zoë', expect.stringContaining('lower-case')],
+  ])('refuses %j', (slug, message) => {
+    expect(slugError(slug)).toEqual(message)
   })
 })

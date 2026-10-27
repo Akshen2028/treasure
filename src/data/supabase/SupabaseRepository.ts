@@ -419,8 +419,30 @@ export function createSupabaseRepository(client: Client): WeddingRepository {
       return data.urls
     },
 
+    async getShareKey(weddingId) {
+      const row = unwrap(
+        await client.from('weddings').select('share_key').eq('id', weddingId).single(),
+      )
+      return row.share_key
+    },
+
     async resetShareKey(weddingId) {
       const { data, error } = await client.rpc('reset_share_key', { p_wedding_id: weddingId })
+      if (error) throw toRepositoryError(error)
+      return data
+    },
+
+    async changeSlug(weddingId, slug) {
+      const rows = unwrap(
+        await client.from('weddings').update({ slug }).eq('id', weddingId).select('id'),
+      )
+      if (rows.length === 0) {
+        throw new RepositoryError('forbidden', 'You don’t have permission to make this change.')
+      }
+    },
+
+    async isSlugAvailable(slug) {
+      const { data, error } = await client.rpc('slug_available', { p_slug: slug })
       if (error) throw toRepositoryError(error)
       return data
     },

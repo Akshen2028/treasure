@@ -31,3 +31,19 @@ export function slugify(name: string): string {
 export function slugCandidate(base: string, attempt: number): string {
   return attempt <= 1 ? base : `${base}-${attempt}`
 }
+
+/** The database's slug length limit. */
+export const SLUG_MAX = 63
+
+/**
+ * Why a typed web address can't be used, or null if it can. Expects the input already
+ * trimmed and lower-cased; whether it's free is only known when the database saves it.
+ */
+export function slugError(slug: string): string | null {
+  if (!slug) return 'Enter a web address.'
+  if (slug.length > SLUG_MAX) return `Keep it to ${SLUG_MAX} characters or fewer.`
+  if (!SLUG_PATTERN.test(slug)) {
+    return 'Use lower-case letters, numbers and hyphens, starting with a letter or number.'
+  }
+  return null
+}

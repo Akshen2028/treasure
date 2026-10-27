@@ -474,6 +474,7 @@ export type Database = {
           wedding_date: string
         }[]
       }
+      slug_available: { Args: { p_slug: string }; Returns: boolean }
       slugify: { Args: { p_name: string }; Returns: string }
       storage_object_wedding_id: {
         Args: { object_name: string }

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { legacyRedirect, paths, safeNext, screenPath, weddingPaths } from './paths'
+import { legacyRedirect, paths, safeNext, screenPath, shareLink, weddingPaths } from './paths'
 
 describe('paths', () => {
   const p = weddingPaths('alex-sam')
@@ -72,5 +72,19 @@ describe('safeNext', () => {
       '/w/a/ b',
     ])
       expect(safeNext(next)).toBeNull()
+  })
+})
+
+describe('shareLink', () => {
+  const origin = 'https://www.mywedonomics.com'
+
+  it('links straight to a wedding without a key', () => {
+    expect(shareLink(origin, 'alex-sam', null)).toBe('https://www.mywedonomics.com/w/alex-sam/home')
+  })
+
+  it('adds the share key when there is one', () => {
+    expect(shareLink(origin, 'alex-sam', '0123456789abcdef0123456789abcdef')).toBe(
+      'https://www.mywedonomics.com/w/alex-sam/home?k=0123456789abcdef0123456789abcdef',
+    )
   })
 })
