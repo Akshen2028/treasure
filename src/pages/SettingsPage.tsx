@@ -6,12 +6,14 @@ import {
   Lock,
   LogOut,
   type LucideIcon,
+  Search,
   ShieldCheck,
   Trash2,
 } from 'lucide-react'
 import { useState } from 'react'
 import { Link } from 'react-router'
 
+import { paths as appPaths } from '@/app/paths'
 import { useWeddingPaths } from '@/app/WeddingContext'
 import { useAccess } from '@/auth/AccessContext'
 import { PlannerLoginDialog } from '@/components/auth/PlannerLoginDialog'
@@ -165,6 +167,15 @@ export function SettingsPage() {
             )}
           </WeddingDataBoundary>
         )}
+
+        <Section title="Wedonomics">
+          <LinkRow
+            to={appPaths.welcome}
+            icon={Search}
+            label="Find another wedding"
+            hint="Search public weddings from the Wedonomics home page"
+          />
+        </Section>
       </PageContainer>
     </>
   )

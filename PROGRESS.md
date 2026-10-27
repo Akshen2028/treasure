@@ -1,6 +1,6 @@
 # Progress and handoff
 
-_Last updated: 2026-10-26. Keep this short and current; it is not a changelog (PRs are)._
+_Last updated: 2026-10-27. Keep this short and current; it is not a changelog (PRs are)._
 
 ## Status
 
@@ -94,8 +94,13 @@ name, optional date, Terms/Privacy consent; calls `create_my_wedding`, then open
 Ontario; contact akshen.jasikumar@gmail.com; `src/features/legal/`), also shown in a sheet from
 the create screen. Unreachable in production until sign-ups open (they stay disabled).
 
-**Next: step 14**, the landing page (search Public weddings, open as guest, Continue with Google /
-email; "My wedding" for signed-in planners). The key rotation and Supabase Pro upgrade are
+**Phase 3 step 14 (branch `phase3/landing-page`)**: `/` is the landing page (search Public
+weddings and open one as a guest; Google / email sign-in; "My wedding" for planners). It no
+longer redirects returning visitors; a fresh sign-in there goes to the planner's wedding, and a
+shared link (`?next=`) offers "View this wedding". Settings has "Find another wedding".
+
+**Next: step 15**, Settings: visibility, Copy/Reset link, guest amounts vs percentages, rename
+and slug (PLAN.md §13). The key rotation and Supabase Pro upgrade are
 deferred to the launch checklist (Phase 5), before public sign-ups are enabled.
 
 ## Unresolved decisions

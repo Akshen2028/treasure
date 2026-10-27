@@ -179,6 +179,17 @@ export function createSupabaseRepository(client: Client): WeddingRepository {
       return map.fromGuestView(data)
     },
 
+    async searchWeddings(term) {
+      const { data, error } = await client.rpc('search_weddings', { q: term })
+      if (error) throw toRepositoryError(error)
+      return data.map((row) => ({
+        name: row.name,
+        slug: row.slug,
+        // The column is nullable; the generated types don't know that.
+        weddingDate: (row.wedding_date as string | null) ?? null,
+      }))
+    },
+
     async updateWedding(id, patch) {
       const row = unwrap(
         await client

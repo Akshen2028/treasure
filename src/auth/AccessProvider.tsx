@@ -113,6 +113,8 @@ export function AccessProvider({ children }: { children: ReactNode }) {
   const [plannerSlug, setPlannerSlug] = useState<string | null>(null)
   // A session exists but couldn't be verified (e.g. offline); retry when possible.
   const pendingVerification = useRef(false)
+  // When this tab last completed a sign-in (see AccessContextValue.signedInAt).
+  const [signedInAt, setSignedInAt] = useState<number | null>(null)
   // Set while this tab signs in, so the SIGNED_IN event doesn't verify a second time.
   const signingIn = useRef(false)
 
@@ -159,6 +161,11 @@ export function AccessProvider({ children }: { children: ReactNode }) {
           const result = await applyVerification()
           if (redirect === 'signed-in' && result === 'invalid-session') {
             toast.error(signInFailureMessage({ reason: 'not-planner' }))
+          } else if (
+            redirect === 'signed-in' &&
+            (result === 'planner' || result === 'no-wedding')
+          ) {
+            setSignedInAt(Date.now())
           }
         } else setMode(fallbackMode())
         if (!cancelled) setStatus('ready')
@@ -221,7 +228,10 @@ export function AccessProvider({ children }: { children: ReactNode }) {
         const { error } = await request()
         if (error) return { ok: false, ...classifySignInError(error) }
         const verification = await applyVerification()
-        if (verification === 'planner' || verification === 'no-wedding') return { ok: true }
+        if (verification === 'planner' || verification === 'no-wedding') {
+          setSignedInAt(Date.now())
+          return { ok: true }
+        }
         if (verification === 'unreachable') return { ok: false, reason: 'network' }
         return { ok: false, reason: 'not-planner' }
       } finally {
@@ -317,6 +327,7 @@ export function AccessProvider({ children }: { children: ReactNode }) {
       status,
       mode,
       plannerSlug: mode === 'planner' ? plannerSlug : null,
+      signedInAt,
       continueAsGuest,
       signInWithGoogle,
       sendEmailCode,
@@ -329,6 +340,7 @@ export function AccessProvider({ children }: { children: ReactNode }) {
       status,
       mode,
       plannerSlug,
+      signedInAt,
       continueAsGuest,
       signInWithGoogle,
       sendEmailCode,

@@ -25,6 +25,11 @@ export type AccessContextValue = {
   mode: AccessMode
   /** The wedding the signed-in planner plans (one per account); null otherwise. */
   plannerSlug: string | null
+  /**
+   * When this tab last completed a sign-in (email code, or the return from Google); null if it
+   * hasn't. A screen that saw it change knows the visitor just signed in there.
+   */
+  signedInAt: number | null
   continueAsGuest: () => void
   /** Redirects to Google; on success the page unloads and the result arrives after return. */
   signInWithGoogle: () => Promise<SignInResult>
