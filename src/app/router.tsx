@@ -21,6 +21,20 @@ export const router = createBrowserRouter([
     children: [
       { path: '/', element: <WelcomePage /> },
       {
+        path: '/create',
+        lazy: async () => ({
+          Component: (await import('@/pages/CreateWeddingPage')).CreateWeddingPage,
+        }),
+      },
+      {
+        path: '/terms',
+        lazy: async () => ({ Component: (await import('@/pages/TermsPage')).TermsPage }),
+      },
+      {
+        path: '/privacy',
+        lazy: async () => ({ Component: (await import('@/pages/PrivacyPage')).PrivacyPage }),
+      },
+      {
         // Every screen of a wedding lives under its slug (PLAN.md §13, phase 3).
         path: '/w/:slug',
         element: <WeddingLayout />,

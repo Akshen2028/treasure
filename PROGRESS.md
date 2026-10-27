@@ -63,7 +63,7 @@ Done at go-live: env vars set in Vercel Production; Supabase public sign-ups dis
 - No service worker: installable, but no offline support.
 - Single-wedding app: the wedding is chosen by `VITE_WEDDING_SLUG` (multi-wedding planned, PLAN.md
   §13).
-- Entry bundle ≈530 kB raw (warning limit raised to 600 in `vite.config.ts`).
+- Entry bundle ≈604 kB raw (warning limit 650 in `vite.config.ts`; the bundler moved some React Router code into it at step 11, first-load JS unchanged at ≈219 kB gzip).
 - The repo lives in iCloud-synced Documents (risk of `file 2.ext` conflict copies).
 
 ## Next recommended task
@@ -87,10 +87,16 @@ reject IP hosts).
 old URLs redirect to `/w/main/...`; `VITE_WEDDING_SLUG` is gone (delete it in Vercel after the
 merge; the seed script uses `SEED_SLUG`, default `main`). See PLAN.md §13 step 13.
 
-**Next: step 11**, the first-run "Create your wedding" screen (calls `create_my_wedding`) with the
-Terms/Privacy consent line (plus draft Terms/Privacy pages). It must stop `AccessProvider`
-signing out accounts with no wedding, and send new couples to `/w/<slug>/home`. The key rotation and Supabase Pro upgrade are deferred to the launch
-checklist (Phase 5), before public sign-ups are enabled.
+**Phase 2 step 11 (branch `phase2/first-run`)**: a signed-in account with no wedding is kept
+signed in as `new-account` (no longer signed out) and sent to `/create` ("Create your wedding":
+name, optional date, Terms/Privacy consent; calls `create_my_wedding`, then opens
+`/w/<slug>/home`). Draft Terms and Privacy at `/terms` and `/privacy` (operator Akshen Jasikumar,
+Ontario; contact akshen.jasikumar@gmail.com; `src/features/legal/`), also shown in a sheet from
+the create screen. Unreachable in production until sign-ups open (they stay disabled).
+
+**Next: step 14**, the landing page (search Public weddings, open as guest, Continue with Google /
+email; "My wedding" for signed-in planners). The key rotation and Supabase Pro upgrade are
+deferred to the launch checklist (Phase 5), before public sign-ups are enabled.
 
 ## Unresolved decisions
 

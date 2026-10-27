@@ -278,7 +278,10 @@ launch, so F pre-creates your Gmail as an auth user and Google sign-in links to 
     wedding and the `planners` row in one transaction. Clients still can't insert into
     `weddings` or `planners`. Slug = `slugify(name)` (SQL, mirrors `src/domain/slug.ts`), then
     `-2`, `-3`… if taken; uniqueness rests on the `weddings.slug` unique constraint.
-11. Sign-in screen and first-run "Create your wedding" screen, with Terms/Privacy consent line.
+11. ✅ First-run "Create your wedding" screen (`/create`) with the Terms/Privacy consent line
+    and draft `/terms`, `/privacy` pages. A valid session with no `planners` row is a
+    `new-account` (kept signed in, sent to `/create` from the welcome screen and any wedding
+    URL); expired sessions are still signed out. Consent is not stored (decided 2026-10-26).
 12. ✅ (PR F) No move was needed: `main`'s planner account is already your Gmail, linked to
     Google. Retired the password login, `VITE_PLANNER_EMAIL`, `planner:setup`, Change password
     and the login throttle.

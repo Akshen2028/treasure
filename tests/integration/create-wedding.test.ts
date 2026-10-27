@@ -50,6 +50,17 @@ afterAll(async () => {
 })
 
 describe('create_my_wedding', () => {
+  it('lets a new account see that it plans no wedding yet, without an error', async () => {
+    // The app keeps such a session and shows "Create your wedding" (plannerVerification.ts).
+    const newcomer = await newUser('newcomer')
+    const { data, error } = await newcomer.client
+      .from('planners')
+      .select('wedding_id, weddings!inner(slug)')
+      .limit(1)
+    expect(error).toBeNull()
+    expect(data).toEqual([])
+  })
+
   it('creates a private wedding with a slug from the names and makes the caller its planner', async () => {
     const { data, error } = await first.client.rpc('create_my_wedding', {
       p_name: `  ${NAME}  `,
