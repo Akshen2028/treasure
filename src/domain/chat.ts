@@ -73,6 +73,22 @@ export const CHAT_INSTRUCTIONS = [
   '- You can’t upload photos or restore deleted items; explain where in the app to do it.',
 ].join('\n')
 
+/** Questions a wedding has asked today against its daily limit (counted by the server). */
+export type AiUsage = { used: number; limit: number }
+
+export const questionsLeft = ({ used, limit }: AiUsage) => Math.max(0, limit - used)
+
+/** The quiet line under the chat input, e.g. "28 of 30 questions left today". */
+export function aiUsageNote(usage: AiUsage): string {
+  const left = questionsLeft(usage)
+  if (left === 0) return 'No questions left today. More after midnight (Toronto time).'
+  return `${left} of ${usage.limit} questions left today`
+}
+
+/** What the chat function says once the wedding's daily limit is used up. */
+export const aiLimitMessage = (limit: number) =>
+  `You’ve used today’s ${limit} questions. More after midnight (Toronto time).`
+
 /** Starter questions, offered in the chat and on the export page. */
 export const CHAT_SUGGESTIONS = [
   'Where are we most likely to go over budget, and what could we cut?',

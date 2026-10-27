@@ -419,6 +419,14 @@ export function createSupabaseRepository(client: Client): WeddingRepository {
       return data.urls
     },
 
+    async getAiUsage(weddingId) {
+      const { data, error } = await client
+        .rpc('ai_usage_today', { p_wedding_id: weddingId })
+        .single()
+      if (error) throw toRepositoryError(error)
+      return { used: data.used, limit: data.daily_limit }
+    },
+
     async getShareKey(weddingId) {
       const row = unwrap(
         await client.from('weddings').select('share_key').eq('id', weddingId).single(),

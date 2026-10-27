@@ -5,6 +5,7 @@
  * All inputs and outputs are domain types (camelCase, integer cents). Permissions are not
  * checked here: the database enforces them and rejects unauthorized writes.
  */
+import type { AiUsage } from '@/domain/chat'
 import type {
   Activity,
   ActivityImage,
@@ -167,6 +168,9 @@ export interface WeddingRepository {
     shareKey: string | null
     paths: string[]
   }): Promise<Record<string, string>>
+
+  /** Assistant questions asked today and the wedding's daily limit. Planners only. */
+  getAiUsage(weddingId: Id): Promise<AiUsage>
 
   /** The wedding's current share key, kept out of the snapshot. Planners only. */
   getShareKey(weddingId: Id): Promise<string>

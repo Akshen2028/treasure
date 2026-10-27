@@ -1,3 +1,4 @@
+import { useQueryClient } from '@tanstack/react-query'
 import { useCallback, useMemo, useRef, useState } from 'react'
 
 import type { WeddingData } from '@/data/queries'
@@ -7,6 +8,7 @@ import { todayIso } from '@/domain/dates'
 import { buildWeddingExport, exportToMarkdown } from '@/domain/export'
 import { useMediaUrl } from '@/data/queries'
 
+import { aiUsageKey } from './aiUsage'
 import type { ApplyResult, EditFocus } from './applyChatEdit'
 import { ChatError, streamChat } from './chatApi'
 import { type ResolvedEdit, resolveEdit } from './chatEdits'
@@ -54,6 +56,7 @@ const isEmptyAnswer = (turn: ChatTurn | undefined) =>
  */
 export function useChat(data: WeddingData | undefined) {
   const mediaUrl = useMediaUrl()
+  const queryClient = useQueryClient()
   const [messages, setMessages] = useState<ChatTurn[]>([])
   const [status, setStatus] = useState<ChatStatus>('idle')
   /** The last failure, with the question to offer for a retry. */
@@ -119,9 +122,13 @@ export function useChat(data: WeddingData | undefined) {
         setMessages((current) => (isEmptyAnswer(current.at(-1)) ? current.slice(0, -2) : current))
         abortRef.current = null
         setStatus('idle')
+        // Every question that reached the server may have been counted.
+        void queryClient.invalidateQueries({ queryKey: aiUsageKey(data.snapshot.wedding.id) })
       }
     },
-    [data, mediaUrl, messages],
+    // queryClient is used in the async body; the memo-dependencies rule misreads it.
+    // oxlint-disable-next-line react/memo-dependencies
+    [data, mediaUrl, messages, queryClient],
   )
 
   /** Records what happened to a proposal (applied, dismissed, undone…). */

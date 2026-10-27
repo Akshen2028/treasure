@@ -6,13 +6,18 @@
  * errors so it can correct them. Nothing is written here: edits happen in the browser, under
  * the planner's own session and RLS, only after they tap Apply.
  *
+ * Each question counts against the wedding's daily limit (`use_ai_question`, service role
+ * only) before Claude is called; at the limit the function answers 429.
+ *
  * Secrets: ANTHROPIC_API_KEY (set with `supabase secrets set`). It never reaches the browser.
+ * SUPABASE_SERVICE_ROLE_KEY is provided by Supabase and used only to count questions.
  * Deploy: `supabase functions deploy chat` (JWT is verified here, not by the gateway).
  */
 import Anthropic from 'npm:@anthropic-ai/sdk@0.131.0'
 import { createClient } from 'npm:@supabase/supabase-js@2.118.0'
 
 import {
+  aiLimitMessage,
   CHAT_INSTRUCTIONS,
   CHAT_MODEL,
   type ChatStreamEvent,
@@ -96,6 +101,21 @@ Deno.serve(async (req) => {
   const anthropicKey = Deno.env.get('ANTHROPIC_API_KEY')
   if (!anthropicKey) return json(500, 'The assistant isn’t set up yet (missing API key).')
   const anthropic = new Anthropic({ apiKey: anthropicKey })
+
+  // Count the question before calling Claude, so cancelling doesn't dodge the limit.
+  const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
+  if (!serviceKey) return json(500, 'The assistant isn’t set up yet (missing service key).')
+  const admin = createClient(Deno.env.get('SUPABASE_URL')!, serviceKey, {
+    auth: { persistSession: false, autoRefreshToken: false },
+  })
+  const { data: usage, error: usageError } = await admin
+    .rpc('use_ai_question', { p_wedding_id: request.value.weddingId })
+    .single<{ allowed: boolean; used: number; daily_limit: number }>()
+  if (usageError || !usage) {
+    console.error('use_ai_question failed', usageError)
+    return json(500, 'Couldn’t check today’s question limit. Try again.')
+  }
+  if (!usage.allowed) return json(429, aiLimitMessage(usage.daily_limit))
 
   const { value } = request
   const refs = refLookup(value.refs)
