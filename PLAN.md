@@ -393,8 +393,8 @@ launch, so F pre-creates your Gmail as an auth user and Google sign-in links to 
 
     **A. Claude (code; one branch and PR each, user green light before merge)**
     - [ ] `/security-review` of the release; fix findings.
-    - [ ] Settings guest card: rename the stale "Enter planner password" button (it opens Google
-          / email sign-in).
+    - [x] Settings guest card: rename the stale "Enter planner password" button to "Sign in"
+          (2026-10-27).
     - [ ] `npm run check`, `npm run build`, `npm run test:db` all green on `main`.
     - [ ] Committed Playwright smoke + axe suite (tech debt; recommended, not blocking).
     - [ ] Production walkthrough with a throwaway Google account: sign in → create wedding →
