@@ -132,8 +132,12 @@ merge. See PLAN.md §13 step 18.
 Vercel Bot Protection in Log mode. The code input no longer says "6-digit" (codes are 8). Phase
 4 is complete with this.
 
-**Next: Phase 5, step 20** (PLAN.md §13). The key rotation and Supabase Pro upgrade are deferred to the launch
-checklist (Phase 5), before public sign-ups are enabled.
+**Phase 5 step 20 (branch `phase5/advisor-cleanup`)**: Security Advisor reviewed 2026-10-27
+(0 errors; the remaining warnings are accepted by design, see PLAN.md §13 step 20). Migration
+`20261027170000_revoke_rls_auto_enable.sql` pushed on 2026-10-27, ahead of the merge. Key
+rotation and Supabase Pro stay deferred until just before sign-ups open.
+
+**Next: Phase 5, step 21** (CI: `npm run check` and `test:db` on PRs; error monitoring).
 
 ## Unresolved decisions
 
