@@ -13,7 +13,8 @@ import {
   Trash2,
 } from 'lucide-react'
 import { useState } from 'react'
-import { Link } from 'react-router'
+import { Link, useNavigate } from 'react-router'
+import { toast } from 'sonner'
 
 import { paths as appPaths } from '@/app/paths'
 import { useWeddingPaths } from '@/app/WeddingContext'
@@ -73,11 +74,18 @@ function LinkRow({
 function AccessCard() {
   const { isPlanner, lock, signOutEverywhere } = useAccess()
   const [busy, setBusy] = useState<'lock' | 'everywhere' | null>(null)
+  const navigate = useNavigate()
 
   async function run(kind: 'lock' | 'everywhere') {
     setBusy(kind)
     await (kind === 'lock' ? lock() : signOutEverywhere())
-    setBusy(null)
+    if (kind === 'lock') {
+      setBusy(null)
+      return
+    }
+    // Signed out: back to the welcome screen to find a wedding or sign in again.
+    void navigate(appPaths.welcome, { replace: true, viewTransition: true })
+    toast.success('Signed out on all devices')
   }
 
   if (!isPlanner) {

@@ -52,7 +52,7 @@ _Last updated: 2026-10-27. Keep this short and current; it is not a changelog (P
    data PRs). Create a free Sentry React project, set its DSN as `VITE_SENTRY_DSN` in Vercel
    Production, redeploy. Optionally require the "Check and build" check in branch protection.
 
-Done at go-live: env vars set in Vercel Production; Supabase public sign-ups disabled; custom domain connected.
+Done at go-live: env vars set in Vercel Production; Supabase public sign-ups disabled (turned on for the private beta, 2026-10-27); custom domain connected.
 
 ## Known bugs
 
@@ -67,8 +67,6 @@ Done at go-live: env vars set in Vercel Production; Supabase public sign-ups dis
   IP (the suite signs in about 25 times). Files sign in only the users they use
   (`createFixture({ signIn })`); a "Request rate limit reached" failure means wait 5 minutes and
   re-run, not raise the production limit.
-- No CI: Vercel builds on merge but runs no tests. Consider a GitHub Action running
-  `npm run check` (and `test:db` with secrets) on PRs.
 - No service worker: installable, but no offline support.
 - Single-wedding app: the wedding is chosen by `VITE_WEDDING_SLUG` (multi-wedding planned, PLAN.md
   §13).
@@ -146,6 +144,12 @@ rotation and Supabase Pro stay deferred until just before sign-ups open.
 every PR/push; `test:db` on data PRs or manual run) and Sentry error reporting (errors only,
 URLs scrubbed, lazy-loaded; off until `VITE_SENTRY_DSN` is set). See PLAN.md §13 step 21 and
 open item 6.
+
+**Private beta (2026-10-27)**: Supabase "Allow new users to sign up" is **on** so one or two
+test couples can create accounts with Google. Google's test-user list does not gate this (basic
+scopes only), so any Google account can create a wedding; email codes still never create
+accounts (`shouldCreateUser: false`). An allowed-emails hook was offered and declined for now;
+key rotation deferred by the user. "Sign out on all devices" now returns to the welcome screen.
 
 **Next: Phase 5, step 22** (`/security-review` of the release, then rotate the key, upgrade to
 Supabase Pro and enable sign-ups).
