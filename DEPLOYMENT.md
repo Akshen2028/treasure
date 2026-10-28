@@ -44,10 +44,21 @@ Set in Vercel → Settings → Environments → Production (and locally in `.env
 | `VITE_SUPABASE_URL`             | Supabase project URL                        |
 | `VITE_SUPABASE_PUBLISHABLE_KEY` | Publishable (anon) key, safe in the browser |
 | `VITE_TURNSTILE_SITE_KEY`       | Cloudflare Turnstile site key (public)      |
+| `VITE_SENTRY_DSN`               | Sentry DSN for error reports (public)       |
 
 Local-only, never on Vercel: `.env.test.local` with `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY`
-and `SUPABASE_SECRET_KEY` (used by `test:db` and `seed:dev`). Templates:
+and `SUPABASE_SECRET_KEY` (used by `test:db` and `seed:dev`). The same three are GitHub repo
+secrets (Settings → Secrets and variables → Actions) for the CI integration job. Templates:
 `.env.example`, `.env.test.example`. Changing a `VITE_*` value requires a redeploy.
+
+## CI and error monitoring
+
+- GitHub Actions (`.github/workflows/ci.yml`): `check` + `build` on every PR and push to `main`;
+  `test:db` against the production project on PRs touching data paths, or via "Run workflow".
+  Integration runs are serialised (`concurrency: integration-db`) and self-cleaning.
+- Sentry (free tier, project for React): copy the DSN into Vercel as `VITE_SENTRY_DSN`
+  (Production) and redeploy. CSP `connect-src` allows `*.ingest.us.sentry.io` and
+  `*.ingest.de.sentry.io`. Errors only, no PII; see PLAN.md §13 step 21.
 
 ## Custom domain
 
@@ -147,4 +158,4 @@ and `SUPABASE_SECRET_KEY` (used by `test:db` and `seed:dev`). Templates:
 ## Pending security task
 
 Rotate the Supabase secret key (leaked in a chat on 2026-10-15): create a new secret key in the
-dashboard → update `.env.test.local` → delete the old key. It is not used by the deployed app.
+dashboard → update `.env.test.local` and the `SUPABASE_SECRET_KEY` GitHub secret → delete the old key. It is not used by the deployed app.

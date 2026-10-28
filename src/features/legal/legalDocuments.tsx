@@ -138,7 +138,8 @@ export function PrivacyContent() {
           Services that run the app for us: Supabase (database, sign-in and photo storage), Vercel
           (website hosting), Resend (sign-in emails), Cloudflare Turnstile (bot check), Google (if
           you sign in with Google) and Anthropic (the AI assistant receives your wedding’s details
-          when you ask it a question). Some of them store data outside Canada.
+          when you ask it a question), and Sentry (error reports: what went wrong, the page and your
+          browser type, with no wedding details or email). Some of them store data outside Canada.
         </li>
         <li>We may disclose information if the law requires it.</li>
       </ul>

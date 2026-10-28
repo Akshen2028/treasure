@@ -5,8 +5,11 @@ import { RouterProvider } from 'react-router/dom'
 import { router } from '@/app/router'
 import { AccessProvider } from '@/auth/AccessProvider'
 import { DataProvider } from '@/data/DataProvider'
+import { initMonitoring } from '@/lib/monitoring'
 
 import './index.css'
+
+initMonitoring()
 
 const root = document.getElementById('root')
 if (!root) throw new Error('Root element #root not found')

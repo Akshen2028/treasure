@@ -20,4 +20,6 @@ export const env = {
    * Without it no check is shown; Supabase then refuses sign-ins if its captcha is on.
    */
   turnstileSiteKey: import.meta.env.VITE_TURNSTILE_SITE_KEY || null,
+  /** Sentry DSN for error reports (public by design). Without it nothing is reported. */
+  sentryDsn: import.meta.env.VITE_SENTRY_DSN || null,
 } as const

@@ -341,7 +341,7 @@ launch, so F pre-creates your Gmail as an auth user and Google sign-in links to 
     disables sending at 0 (display only; the server enforces). Also decided 2026-10-27: the
     separate Anthropic workspace is deferred; the existing key's $5 prepaid credit (no
     top-ups) caps spending for now. Revisit before sign-ups open.
-18. Caps and address rules (migration `20261027150000_wedding_limits.sql`). An `after insert`
+18. ✅ Caps and address rules (migration `20261027150000_wedding_limits.sql`). An `after insert`
     statement trigger on each wedding table counts the wedding's rows against
     `record_limit(plan, table)` under a per-wedding advisory lock: 50 events, 100 categories,
     500 event categories, 2,000 activities, 2,000 links, 300 photos, 5,000 payments. Over the
@@ -377,5 +377,13 @@ launch, so F pre-creates your Gmail as an auth user and Google sign-in links to 
     `20261027170000_revoke_rls_auto_enable.sql` revokes API execute on Supabase's
     `rls_auto_enable()` event-trigger helper. Decided 2026-10-27: key rotation and Pro wait
     until just before launch (only the owner uses the app until then).
-21. CI: `npm run check` and `test:db` on PRs. Error monitoring (e.g. Sentry free tier).
+21. ✅ CI and error monitoring. `.github/workflows/ci.yml`: `npm run check` and `npm run build`
+    on every PR and push to `main`; `npm run test:db` on PRs that touch `supabase/`,
+    `tests/integration/`, `src/data/`, `scripts/` (or a manual run), one run at a time, using
+    repo secrets `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY`, `SUPABASE_SECRET_KEY`. Errors go
+    to Sentry (free tier) when `VITE_SENTRY_DSN` is set, production only: errors only (no
+    tracing or replay), `dataCollection` all off (Sentry v11 collects user info, headers, bodies by default), console breadcrumbs dropped, URL query and fragment stripped
+    (share keys, auth tokens; `src/lib/scrub.ts`). The SDK loads after first render (not in the
+    entry chunk). Uncaught errors and the route error screen are reported; handled errors
+    shown as toasts are not. Privacy page lists Sentry. Decided 2026-10-27.
 22. `/security-review` of the release, then enable sign-ups in Supabase.
