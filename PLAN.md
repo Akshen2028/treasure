@@ -369,6 +369,13 @@ launch, so F pre-creates your Gmail as an auth user and Google sign-in links to 
 **Phase 5: Launch checklist.**
 
 20. Rotate the Supabase secret key; upgrade to Supabase Pro (backups, no pausing); run the
-    Security Advisor.
+    Security Advisor. Advisor ✅ 2026-10-27: 0 errors. Accepted by design: security-definer
+    functions callable by anon/authenticated (`guest_view`, `search_weddings`, `is_planner`,
+    `create_my_wedding`, `slug_available`, `ai_usage_today`, `reset_share_key`,
+    `media_upload_allowed`; each checks access itself), leaked-password protection (no
+    passwords), `ai_usage` with RLS and no policy (service role only). Migration
+    `20261027170000_revoke_rls_auto_enable.sql` revokes API execute on Supabase's
+    `rls_auto_enable()` event-trigger helper. Decided 2026-10-27: key rotation and Pro wait
+    until just before launch (only the owner uses the app until then).
 21. CI: `npm run check` and `test:db` on PRs. Error monitoring (e.g. Sentry free tier).
 22. `/security-review` of the release, then enable sign-ups in Supabase.
