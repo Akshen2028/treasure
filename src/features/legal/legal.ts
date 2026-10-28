@@ -5,7 +5,7 @@
 
 export const OPERATOR = 'Akshen Jasikumar'
 export const CONTACT_EMAIL = 'akshen.jasikumar@gmail.com'
-export const LAST_UPDATED = 'October 26, 2026'
+export const LAST_UPDATED = 'October 27, 2026'
 
 export type LegalDocument = 'terms' | 'privacy'
 

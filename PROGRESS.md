@@ -25,7 +25,7 @@ _Last updated: 2026-10-27. Keep this short and current; it is not a changelog (P
 
 ## Verification (2026-10-17, at PR #15/#16)
 
-- `npm run check`: typecheck, lint, format; 230 unit tests pass (369 at PR C, 2026-10-20; 426 at step 17; 443 at step 18). `npm run build` passes (entry
+- `npm run check`: typecheck, lint, format; 230 unit tests pass (369 at PR C, 2026-10-20; 426 at step 17; 443 at step 18; 448 at step 21). `npm run build` passes (entry
   chunk ≈152 kB gzip; Recharts split into the Home chunk).
 - `npm run test:db`: 91/91 integration tests pass (134/134 at PR C; 152/152 at step 17; 170/170 at step 18) (RLS, sessions, storage, data integrity).
 - Browser checks (ad-hoc Puppeteer scripts, see Tech debt): full planner and guest walkthrough
@@ -35,7 +35,8 @@ _Last updated: 2026-10-27. Keep this short and current; it is not a changelog (P
 ## Open items (need the user)
 
 1. **Rotate the Supabase secret key.** It leaked in chat on 2026-10-15 (prefix `sb_secret_fmZM`).
-   Create a new key in the dashboard, put it in `.env.test.local`, delete the old one. User
+   Create a new key in the dashboard, put it in `.env.test.local` and the `SUPABASE_SECRET_KEY`
+   GitHub secret, delete the old one. User
    deferred it; still the top security item.
 2. **Sample data is live.** The real wedding still holds seeded sample data. Clear with
    `npm run seed:dev -- --clear-only --yes` only after explicit approval (destructive).
@@ -46,6 +47,10 @@ _Last updated: 2026-10-27. Keep this short and current; it is not a changelog (P
    random password via the admin API (Google and email codes are unaffected).
 5. Free Supabase plan (accepted): the project pauses after 7 idle days; there are no automatic
    backups.
+6. **CI and Sentry setup (step 21).** Add GitHub repo secrets `SUPABASE_URL`,
+   `SUPABASE_PUBLISHABLE_KEY`, `SUPABASE_SECRET_KEY` (until then the integration job fails on
+   data PRs). Create a free Sentry React project, set its DSN as `VITE_SENTRY_DSN` in Vercel
+   Production, redeploy. Optionally require the "Check and build" check in branch protection.
 
 Done at go-live: env vars set in Vercel Production; Supabase public sign-ups disabled; custom domain connected.
 
@@ -137,7 +142,13 @@ Vercel Bot Protection in Log mode. The code input no longer says "6-digit" (code
 `20261027170000_revoke_rls_auto_enable.sql` pushed on 2026-10-27, ahead of the merge. Key
 rotation and Supabase Pro stay deferred until just before sign-ups open.
 
-**Next: Phase 5, step 21** (CI: `npm run check` and `test:db` on PRs; error monitoring).
+**Phase 5 step 21 (branch `phase5/ci-monitoring`)**: GitHub Actions CI (check + build on
+every PR/push; `test:db` on data PRs or manual run) and Sentry error reporting (errors only,
+URLs scrubbed, lazy-loaded; off until `VITE_SENTRY_DSN` is set). See PLAN.md §13 step 21 and
+open item 6.
+
+**Next: Phase 5, step 22** (`/security-review` of the release, then rotate the key, upgrade to
+Supabase Pro and enable sign-ups).
 
 ## Unresolved decisions
 
