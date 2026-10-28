@@ -68,8 +68,6 @@ Done at go-live: env vars set in Vercel Production; Supabase public sign-ups dis
   (`createFixture({ signIn })`); a "Request rate limit reached" failure means wait 5 minutes and
   re-run, not raise the production limit.
 - No service worker: installable, but no offline support.
-- Single-wedding app: the wedding is chosen by `VITE_WEDDING_SLUG` (multi-wedding planned, PLAN.md
-  §13).
 - Entry bundle ≈604 kB raw (warning limit 650 in `vite.config.ts`; the bundler moved some React Router code into it at step 11, first-load JS unchanged at ≈219 kB gzip).
 - The repo lives in iCloud-synced Documents (risk of `file 2.ext` conflict copies).
 
@@ -151,8 +149,9 @@ scopes only), so any Google account can create a wedding; email codes still neve
 accounts (`shouldCreateUser: false`). An allowed-emails hook was offered and declined for now;
 key rotation deferred by the user. "Sign out on all devices" now returns to the welcome screen.
 
-**Next: Phase 5, step 22** (`/security-review` of the release, then rotate the key, upgrade to
-Supabase Pro and enable sign-ups).
+**Next: public launch, when the user says so.** Follow the runbook in PLAN.md §13 step 22
+(section A is Claude's, B is the user's; publishing the Google app is last). Tick items there as
+they're done. Open items 1 and 3–6 below are part of it.
 
 ## Unresolved decisions
 
