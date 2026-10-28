@@ -386,4 +386,43 @@ launch, so F pre-creates your Gmail as an auth user and Google sign-in links to 
     (share keys, auth tokens; `src/lib/scrub.ts`). The SDK loads after first render (not in the
     entry chunk). Uncaught errors and the route error screen are reported; handled errors
     shown as toasts are not. Privacy page lists Sentry. Decided 2026-10-27.
-22. `/security-review` of the release, then enable sign-ups in Supabase.
+22. **Public launch runbook.** Since 2026-10-27 the app is in a private beta: Supabase sign-ups
+    are on, and any Google account can create a wedding (Google's test-user list doesn't gate
+    basic scopes); email codes never create accounts. Launch = finish the list below, then
+    publish the Google app. Work top to bottom; tick items here as they're done.
+
+    **A. Claude (code; one branch and PR each, user green light before merge)**
+    - [ ] `/security-review` of the release; fix findings.
+    - [ ] Settings guest card: rename the stale "Enter planner password" button (it opens Google
+          / email sign-in).
+    - [ ] `npm run check`, `npm run build`, `npm run test:db` all green on `main`.
+    - [ ] Committed Playwright smoke + axe suite (tech debt; recommended, not blocking).
+    - [ ] Production walkthrough with a throwaway Google account: sign in → create wedding →
+          Private share link opens as guest → Public appears in search → percentage mode hides
+          amounts → Delete account removes it.
+    - [ ] Update PROGRESS.md / DEPLOYMENT.md for the launch state.
+
+    **B. User (dashboards; Claude gives exact clicks when we get here)**
+    - [ ] Rotate the Supabase secret key (leaked 2026-10-15, prefix `sb_secret_fmZM`): new key
+          in `.env.test.local` and the `SUPABASE_SECRET_KEY` GitHub secret, then delete the old.
+    - [ ] Upgrade Supabase to Pro (daily backups, no pausing after 7 idle days).
+    - [ ] GitHub repo secrets `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY`, `SUPABASE_SECRET_KEY`
+          (CI integration job); optionally require "Check and build" in branch protection.
+    - [ ] Sentry: free React project; `VITE_SENTRY_DSN` in Vercel Production; redeploy.
+    - [ ] Anthropic: separate "Wedonomics" workspace with a monthly spend limit (default $20) and
+          its key as the `ANTHROPIC_API_KEY` function secret (today: shared key, $5 prepaid).
+    - [ ] Email capacity: Supabase sends at most 30 emails/h; check Resend's plan limits and raise
+          both if needed.
+    - [ ] Supabase Auth: Site URL `https://www.mywedonomics.com`; redirect allowlist has www and
+          the Vercel domains.
+    - [ ] Vercel: `VITE_WEDDING_SLUG` deleted (unused since step 13).
+    - [ ] Review the Terms and Privacy drafts (not legal advice).
+    - [ ] Main wedding: clear the sample data (`npm run seed:dev -- --clear-only --yes`,
+          destructive, explicit approval) or keep it as a demo.
+    - [ ] Old planner password: retire it (long random password via admin API) or keep.
+    - [ ] Delete leftover beta test accounts (Supabase → Authentication → Users).
+    - [ ] **Last:** Google Auth Platform → Audience → Publish app (basic scopes, no review
+          needed); check the branding (name, logo, privacy and terms links).
+
+    Optional before or after launch: an allowed-emails "before user created" hook (offered for the
+    beta, declined 2026-10-27).
