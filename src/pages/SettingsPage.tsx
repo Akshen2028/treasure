@@ -104,7 +104,7 @@ function AccessCard() {
           trigger={
             <Button variant="outline" className="self-start">
               <KeyRound data-icon="inline-start" />
-              Enter planner password
+              Sign in
             </Button>
           }
         />
